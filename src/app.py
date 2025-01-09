@@ -127,7 +127,7 @@ def add_rag_agent(item = None):
     agent_type = "RAG"
     agent_name = st.text_input("Name", value=None)
     # system_message = st.text_area("System Message", value=None)
-    # description = st.text_area("Description", value=None)
+    description = st.text_area("Description", value=None)
 
     index_name = st.text_input("Index Name", value=None)
         
@@ -138,7 +138,7 @@ def add_rag_agent(item = None):
             "type": agent_type,
             "name": agent_name,
             # "system_message": system_message,
-            # "description": description,
+            "description": description,
             
             "icon": "🔍",
             "index_name": index_name
