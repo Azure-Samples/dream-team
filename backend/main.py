@@ -6,7 +6,7 @@ from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.storage.blob import BlobServiceClient
 # from sqlalchemy.orm import Session
 import schemas, crud
-from database import store_conversation, fetch_user_conversatons, delete_user_conversation
+from database import store_conversation, fetch_user_conversatons,fetch_user_conversation, delete_user_conversation
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -382,8 +382,9 @@ async def list_all_conversations(user: dict = Depends(validate_token)):
 
 # New endpoint to retrieve conversations for the authenticated user.
 @app.post("/conversations/user")
-async def list_user_conversations(user: dict = Depends(validate_token)):
-    conversations = crud.get_user_conversations(user["sub"])
+async def list_user_conversation(request_data: dict = None, user: dict = Depends(validate_token)):
+    session_id = request_data.get("session_id") if request_data else None
+    conversations = fetch_user_conversation(user["sub"], session_id=session_id)
     return conversations
 
 @app.post("/conversations/delete")

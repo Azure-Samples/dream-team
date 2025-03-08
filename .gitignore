@@ -39,5 +39,5 @@ dream/
 .cache/
 logs/
 tmp/
-
+backend/data/conversations/
 

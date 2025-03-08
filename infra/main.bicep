@@ -97,6 +97,17 @@ module keyVault './shared/keyvault.bicep' = {
   scope: rg
 }
 
+// Add network module before appsEnv
+module network './shared/netwk.bicep' = {
+  name: 'network'
+  params: {
+    name: '${abbrs.networkVirtualNetworks}${resourceToken}'
+    location: location
+    tags: tags
+  }
+  scope: rg
+}
+
 module appsEnv './shared/apps-env.bicep' = {
   name: 'apps-env'
   params: {
@@ -105,6 +116,9 @@ module appsEnv './shared/apps-env.bicep' = {
     tags: tags
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
+    // Pass the ACA subnet ID from the network module
+    infrastructureSubnetId: network.outputs.acaSubnetId
+    // managedResourceGroupName: '${rg.name}-apps-env-mng'
   }
   scope: rg
 }
@@ -125,8 +139,18 @@ module backend './app/backend.bicep' = {
     customSubDomainName: '${prefix}-${resourceToken}'
     cosmosdbName: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
     aiSearchName: '${abbrs.searchSearchServices}${resourceToken}'
+    // Pass subnet IDs from the network module to backend
+    acaSubnetId: network.outputs.acaSubnetId
+    defaultSubnetId: network.outputs.defaultSubnetId
+    azureOpenaiResourceName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+    storageName: '${abbrs.storageStorageAccounts}${resourceToken}'
+    vnetId: network.outputs.vnetId
   }
   scope: rg
+  dependsOn: [
+    network
+    appsEnv
+  ]
 }
 
 // Add frontend deployment module
@@ -154,6 +178,7 @@ output COSMOS_DB_URI string = backend.outputs.cosmosdb_uri
 output COSMOS_DB_DATABASE string = backend.outputs.cosmosdb_database
 output CONTAINER_NAME string = backend.outputs.container_name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = backend.outputs.ai_search_endpoint
+output AZURE_RESOURCE_GROUP string = rg.name
 // output AZURE_SEARCH_ADMIN_KEY string = backend.outputs.ai_search_admin_key
 
 

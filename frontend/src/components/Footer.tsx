@@ -10,7 +10,7 @@ export function Footer() {
         <img src={ag} alt="Logo" className="w-[18px] inline" />
         <p className="inline">&nbsp;running on </p>
         <img src={aAif} alt="Logo" className="w-[18px] inline" />
-        <p className="inline">&nbsp;ver. 20250304.1</p>
+        <p className="inline">&nbsp;ver. 20250308.1</p>
       </div>
     </footer>
   );

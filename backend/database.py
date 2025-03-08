@@ -117,8 +117,32 @@ def fetch_user_conversatons(user_id: str):
         List[dict]: A list of documents that match the given user_id.
     """
     container = get_db()
-    query = "SELECT * FROM c WHERE c.user_id = @userId"
+    query = "SELECT c.user_id, c.session_id, c.timestamp FROM c WHERE c.user_id = @userId"
     parameters = [{"name": "@userId", "value": user_id}]
+    items = list(container.query_items(
+        query=query,
+        parameters=parameters,
+        enable_cross_partition_query=True
+    ))
+    return items
+
+def fetch_user_conversation(user_id: str, session_id: str):
+    """
+    Retrieves a conversation document from the Cosmos DB container identified by its user_id and session_id.
+    
+    Parameters:
+        user_id (str): The user ID of the conversation document.
+        session_id (str): The session ID of the conversation document.
+    
+    Returns:
+        dict: The conversation document that matches the given user_id and session_id.
+    """
+    container = get_db()
+    query = "SELECT * FROM c WHERE c.user_id = @userId AND c.session_id = @sessionId"
+    parameters = [
+        {"name": "@userId", "value": user_id},
+        {"name": "@sessionId", "value": session_id},
+    ]
     items = list(container.query_items(
         query=query,
         parameters=parameters,

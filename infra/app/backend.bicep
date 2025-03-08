@@ -22,11 +22,21 @@ param cosmosdbName string
 @description('Name of the Azure Search resource')
 param aiSearchName string
 
+@description('Name of the storage account')
+param storageName string
+
 @secure()
 param appDefinition object
 
 @description('Principal ID of the user executing the deployment')
 param userPrincipalId string
+
+// Add parameter to receive the ACA subnet ID from main.bicep
+param acaSubnetId string
+param defaultSubnetId string
+
+@description('The ID of the target virtual network for private DNS association')
+param vnetId string
 
 var appSettingsArray = filter(array(appDefinition.settings), i => i.name != '')
 var secrets = map(filter(appSettingsArray, i => i.?secret != null), i => {
@@ -116,6 +126,197 @@ resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/c
       // Optionally add indexing policy, uniqueKeyPolicy, etc.
     }
   }
+}
+
+// Create Storage Account with private endpoint in the default subnet
+resource storageAcct 'Microsoft.Storage/storageAccounts@2021-09-01' = {
+  name: storageName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {
+    accessTier: 'Hot'
+  }
+}
+
+resource peStorage 'Microsoft.Network/privateEndpoints@2021-05-01' = {
+  name: 'pe-storage-${uniqueString(name, location)}'
+  location: location
+  properties: {
+    subnet: {
+      id: defaultSubnetId // Use the defaultSubnetId parameter instead of network module output
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'storageLink'
+        properties: {
+          privateLinkServiceId: storageAcct.id
+          groupIds: [
+            'blob'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// Create Private Endpoint for CosmosDB in the default subnet
+resource peCosmos 'Microsoft.Network/privateEndpoints@2021-05-01' = {
+  name: 'pe-cosmos-${uniqueString(name, location)}'
+  location: location
+  properties: {
+    subnet: {
+      id: defaultSubnetId // Use the defaultSubnetId parameter instead of network module output
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'cosmosLink'
+        properties: {
+          privateLinkServiceId: cosmosDb.id
+          groupIds: [
+            'Sql'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+resource cosmosdbPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+  name: 'privatelink.documents.azure.com'
+  location: 'global'
+}
+
+resource cosmosdbDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = {
+  name: 'cosmosdb-dnslink'
+  parent: cosmosdbPrivateDnsZone
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: vnetId
+    }
+    registrationEnabled: false
+  }
+}
+
+resource cosmosdbZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-02-01' = {
+  name: 'cosmosdbZoneGroup'
+  parent: peCosmos
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'default'
+        properties: {
+          privateDnsZoneId: cosmosdbPrivateDnsZone.id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    cosmosdbDnsLink
+    peCosmos
+  ]
+}
+
+// Add AI Search resource creation
+resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
+  name: aiSearchName
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${identity.id}': {} }
+  }
+  location: location
+  sku: {
+    name: 'basic'
+  }
+  properties: {
+    hostingMode: 'default'
+    replicaCount: 1
+    partitionCount: 1
+    authOptions: {
+        aadOrApiKey: {aadAuthFailureMode: 'http403'} 
+      
+    }
+  }
+}
+
+resource aiSearchContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, identity.id, 'SearchServiceContributor')
+  scope: aiSearch
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
+  }
+}
+resource aiSearchDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, identity.id, 'SearchServiceDataContributor')
+  scope: aiSearch
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
+  }
+}
+
+// Add a private endpoint to aiSearch and associate a private DNS zone for search
+resource searchPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+  name: 'privatelink.search.windows.net'
+  location: 'global'
+}
+
+resource searchDnsLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = {
+  name: 'search-dnslink'
+  parent: searchPrivateDnsZone
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: vnetId
+    }
+    registrationEnabled: false
+  }
+}
+
+resource peSearch 'Microsoft.Network/privateEndpoints@2021-05-01' = {
+  name: 'pe-search-${uniqueString(name, location)}'
+  location: location
+  properties: {
+    subnet: {
+      id: defaultSubnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'searchLink'
+        properties: {
+          privateLinkServiceId: aiSearch.id
+          groupIds: [
+            'searchService'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+resource searchZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-02-01' = {
+  name: 'searchZoneGroup'
+  parent: peSearch
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'default'
+        properties: {
+          privateDnsZoneId: searchPrivateDnsZone.id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    searchDnsLink
+    peSearch
+  ]
 }
 
 resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
@@ -270,7 +471,7 @@ resource openaideploymentembedding 'Microsoft.CognitiveServices/accounts/deploym
   parent: openai
   sku: {
     name: 'Standard'
-    capacity: 99
+    capacity: 15
   }
   properties: {
     model: {
@@ -378,47 +579,6 @@ resource assignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@20
   }
 }
 
-// Add AI Search resource creation
-resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
-  name: aiSearchName
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: { '${identity.id}': {} }
-  }
-  location: location
-  sku: {
-    name: 'basic'
-  }
-  properties: {
-    hostingMode: 'default'
-    replicaCount: 1
-    partitionCount: 1
-    authOptions: {
-        aadOrApiKey: {aadAuthFailureMode: 'http403'} 
-      
-    }
-  }
-}
-
-resource aiSearchContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(aiSearch.id, identity.id, 'SearchServiceContributor')
-  scope: aiSearch
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
-  }
-}
-resource aiSearchDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(aiSearch.id, identity.id, 'SearchServiceDataContributor')
-  scope: aiSearch
-  properties: {
-    principalId: identity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
-  }
-}
-
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
 output name string = app.name
 output uri string = 'https://${app.properties.configuration.ingress.fqdn}'
@@ -428,6 +588,7 @@ output pool_endpoint string = dynamicsession.properties.poolManagementEndpoint
 output cosmosdb_uri string = cosmosDb.properties.documentEndpoint
 output cosmosdb_database string = 'ag_demo'
 output container_name string = 'ag_demo'
+output cosmosDbId string = cosmosDb.id
 
 // Add output for AI Search endpoint
 output ai_search_endpoint string = 'https://${aiSearch.name}.search.windows.net'

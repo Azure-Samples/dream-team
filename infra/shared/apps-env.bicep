@@ -1,11 +1,15 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+// param managedResourceGroupName string = resourceGroup().name
 
 param logAnalyticsWorkspaceName string
 param applicationInsightsName string = ''
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-10-01' = {
+// Add infrastructure subnet ID parameter
+param infrastructureSubnetId string = ''
+
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2024-10-02-preview' = {
   name: name
   location: location
   tags: tags
@@ -18,6 +22,11 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-10-01'
       }
     }
     daprAIConnectionString: applicationInsights.properties.ConnectionString
+    // Add VNet integration if infrastructureSubnetId is provided
+    vnetConfiguration: !empty(infrastructureSubnetId) ? {
+      infrastructureSubnetId: infrastructureSubnetId
+    } : null
+    // infrastructureResourceGroup: managedResourceGroupName
   }
 }
 

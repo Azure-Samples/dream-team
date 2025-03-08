@@ -62,11 +62,29 @@ export default function PlaygroundHistory() {
   // New state for dialog display.
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  // New state to store the selected conversation data
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [isConversationLoading, setIsConversationLoading] = useState(false);
 
-  // New function to show details in a dialog for a given session_id.
-  const handleShowDetails = (sessionId: string) => {
-    setSelectedSessionId(sessionId)
-    setDialogOpen(true)
+  // Updated function to fetch conversation details
+  const handleShowDetails = async (userId: string, sessionId: string) => {
+    try {
+      setSelectedSessionId(sessionId);
+      setIsConversationLoading(true);
+      
+      const response = await axios.post(`${BASE_URL}/conversations/user`, {
+        user_id: userId,
+        session_id: sessionId
+      });
+      
+      setSelectedConversation(response.data[0]);
+      setDialogOpen(true);
+      // console.log('Conversation details:', response.data[0]);
+    } catch (error) {
+      console.error("Failed to fetch conversation details:", error);
+    } finally {
+      setIsConversationLoading(false);
+    }
   }
   
 
@@ -75,7 +93,7 @@ export default function PlaygroundHistory() {
       try {
         setIsHistoryLoading(true);
         const response = await axios.post(`${BASE_URL}/conversations`);
-        console.log('Response:', response.data);
+        // console.log('Response:', response.data);
         setHistoryItems(response.data);
         setIsHistoryLoading(false);
       } catch (error) {
@@ -206,7 +224,7 @@ export default function PlaygroundHistory() {
                                 <TableCell>{item.timestamp}</TableCell>
                                 {/* <TableCell>{item.runtime}</TableCell> */}
                                 <TableCell className="text-right">
-                                  <Button variant="outline" size="icon" onClick={() => handleShowDetails(item.session_id)}>
+                                  <Button variant="outline" size="icon" onClick={() => handleShowDetails(item.user_id,item.session_id)}>
                                     <Eye />
                                   </Button>
                                   &nbsp;&nbsp;
@@ -238,52 +256,40 @@ export default function PlaygroundHistory() {
                   Displaying details for session ID: <strong>{selectedSessionId}</strong>
                 </div>
                 <div className="mt-4">
-                  {/* Find the conversation matching the selected session id */}
-                  {(() => {
-                    const conversation = historyItems.find(item => item.session_id === selectedSessionId);
-                    if (!conversation) {
-                      return <p>No conversation found.</p>;
-                    }
-                    if (!conversation.messages || conversation.messages.length === 0) {
-                      return <p>No messages available for this conversation.</p>;
-                    }
-                    return (
-                      <div className="space-y-2">
-                        {conversation.messages
-                          .filter((message: any) => message.source) // only display messages with defined source
+                  {isConversationLoading ? (
+                    <div className="flex items-center justify-center h-40">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedConversation && selectedConversation.messages && 
+                        selectedConversation.messages
+                          .filter((message: any) => message.source)
                           .map((message: any, index: any) => (
                           
                           <div key={index} className={`flex ${message.source.toLowerCase() === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`p-2 rounded-lg shadow ${message.source.toLowerCase() === 'user' ? 'group/message relative break-words rounded-lg p-3 text-sm sm:max-w-[70%] bg-primary text-primary-foreground duration-300 animate-in fade-in-0 zoom-in-75 origin-bottom-right' : 'group/message relative break-words rounded-lg p-3 text-sm sm:max-w-[96%] bg-muted text-foreground duration-300 animate-in fade-in-0 zoom-in-75 origin-bottom-left'}`}>
-                            <div className="flex items-center space-x-2">
-                              <Avatar>
-                                <AvatarImage src={getAvatarSrc(message.source)} />
-                                <AvatarFallback>{getAvatarFallback(message.source)}</AvatarFallback>
-                                {/* <Bot className="ml-autoaspect-square h-full w-full" /> */}
-                              </Avatar>
-                              <div className="break-all max-w-[100%] message">
-                                <p className="text-sm font-semibold">{message.source}</p>
-                                <MarkdownRenderer markdownText={message.content} />
-                                {/* Display image if available */}
-                                {message.content_image && (
-                                  <img src={`${message.content_image}`} alt="content" className="mt-2 max-w-[625px]" />
-                                )}
-                                {/* <MarkdownRenderer>{message.message}</MarkdownRenderer> */}
-                                {/* <p className="text-xs text-muted-foreground">{message.time && new Date(message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit',hour12: false })}</p> */}
+                            <div className={`p-2 rounded-lg shadow ${message.source.toLowerCase() === 'user' ? 'group/message relative break-words rounded-lg p-3 text-sm sm:max-w-[70%] bg-primary text-primary-foreground duration-300 animate-in fade-in-0 zoom-in-75 origin-bottom-right' : 'group/message relative break-words rounded-lg p-3 text-sm sm:max-w-[96%] bg-muted text-foreground duration-300 animate-in fade-in-0 zoom-in-75 origin-bottom-left'}`}>
+                              <div className="flex items-center space-x-2">
+                                <Avatar>
+                                  <AvatarImage src={getAvatarSrc(message.source)} />
+                                  <AvatarFallback>{getAvatarFallback(message.source)}</AvatarFallback>
+                                </Avatar>
+                                <div className="break-all max-w-[100%] message">
+                                  <p className="text-sm font-semibold">{message.source}</p>
+                                  <MarkdownRenderer markdownText={message.content} />
+                                  {message.content_image && (
+                                    <img src={`${message.content_image}`} alt="content" className="mt-2 max-w-[625px]" />
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                         {/* <div className='inline'>
-                          <time className=" mt-1 block px-1 text-xs opacity-50 duration-500 animate-in fade-in-0">
-                            {message.time && new Date(message.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                          </time>
-                         </div> */}
-                        </div>
-
                         ))}
-                      </div>
-                    );
-                  })()}
+                      {!selectedConversation?.messages?.length && (
+                        <p>No messages available for this conversation.</p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 </ScrollArea>
                 <DialogFooter>
