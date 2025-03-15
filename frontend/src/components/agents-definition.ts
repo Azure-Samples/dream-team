@@ -121,70 +121,180 @@ export const agentsTeam1: Agent[] = [
     }
   ];
 
+
 // Predictive Maintenance Scenario
 export const agentsTeam2: Agent[] = [
-      {
-        input_key: "0001",
-        type: "MagenticOne",
-        name: "Coder",
-        system_message: "if you need to provide a path to specific file, please provide the path to the file in the data folder so the path should start with data/",
-        description: "",
-        icon: "👨‍💻",
-        index_name: ""
-      },
-      {
-        input_key: "0002",
-        type: "MagenticOne",
-        name: "Executor",
-        system_message: "",
-        description: "",
-        icon: "💻",
-        index_name: ""
-      },
-      {
-        input_key: "0003",
-        type: "MagenticOne",
-        name: "FileSurfer",
-        system_message: "",
-        description: "",
-        icon: "📂",
-        index_name: ""
-      },
-      // {
-      //   input_key: "0004",
-      //   type: "MagenticOne",
-      //   name: "WebSurfer",
-      //   system_message: "",
-      //   description: "",
-      //   icon: "🏄‍♂️",
-      //   index_name: ""
-      // },
-      {
-        input_key:"0005",
-        type:"Custom",
-        name:"SensorSentinel",
-        system_message:`
-  You are Sensor Sentinel, the real-time data guardian for our high‑pressure gas compressor. Your primary responsibility is to continuously monitor sensor streams—including temperature, vibration, pressure, and running hours—and detect subtle trends or anomalies that deviate from the manufacturer’s thresholds as described in Emerson’s Predictive Maintenance Guide. Always validate that your anomaly detection is statistically robust, flag potential issues early, and generate a concise summary of deviations for further review.
-  
-  You are provided with a folder containing both csv files and pdfs, make sure to explore the full data from the folder. Your task is to analyze these datasets. No additional data needed.
-  The data is under the folder "pred_maint", you shouldn't by any chance generate hallucinated data, the data source should be the output of file surfer agent only, you are not allowed to generate raw data just to analyze it
-  
-  Reply "TERMINATE" in the end when everything is done.
-  `,
-        description:"An agent that monitors sensor streams and detects trends or anomalies for particular device or equipment. Agent has access to all necessary data.",
-        icon:"🎻",
-        index_name:""
-        },
-      {
-        input_key:"0006",
-        type:"RAG",
-        name:"MaintanceKBAgent",
-        system_message:"",
-        description:"An agent that has access to internal index and can handle RAG tasks, call this agent if you are getting questions on Emerson’s Predictive Maintenance Guide.",
-        icon:"📖",
-        index_name:"ag-demo-pred-maint"
-        }
-    ];
+  {
+    input_key: "0001",
+    type: "MagenticOne",
+    name: "Coder",
+    system_message: "",
+    description: "",
+    icon: "👨‍💻",
+    index_name: ""
+  },
+  {
+    input_key: "0002",
+    type: "MagenticOne",
+    name: "Executor",
+    system_message: "",
+    description: "",
+    icon: "💻",
+    index_name: ""
+  },
+  // {
+  //   input_key: "0003",
+  //   type: "MagenticOne",
+  //   name: "FileSurfer",
+  //   system_message: "",
+  //   description: "",
+  //   icon: "📂",
+  //   index_name: ""
+  // },
+  // {
+  //   input_key: "0004",
+  //   type: "MagenticOne",
+  //   name: "WebSurfer",
+  //   system_message: "",
+  //   description: "",
+  //   icon: "🏄‍♂️",
+  //   index_name: ""
+  // },
+  {
+    input_key:"0005",
+    type:"Custom",
+    name:"SensorSentinel",
+    system_message:`
+You are Sensor Sentinel, the real‑time data guardian for our high‑pressure gas compressor. Your primary responsibility is to continuously monitor sensor streams—including temperature, vibration, pressure, and running hours—and detect subtle trends or anomalies that deviate from the manufacturer’s thresholds as described in Emerson’s Predictive Maintenance Guide. Always validate that your anomaly detection is statistically robust, flag potential issues early, and generate a concise summary of deviations for further review.
+
+Datasets
+
+You are provided with detailed datasets for seven transformers (T1001 to T1007). Your task is to analyze these datasets. No additional data needed. Do not use any other data than below.
+
+### Dataset 1: Sensor Data for High‑Pressure G
+
+| Timestamp           | EquipmentID | Temperature (°C) | Vibration (mm/s) | Pressure (bar) | RunningHours |  
+|---------------------|-------------|------------------|------------------|----------------|--------------|  
+| 2024-04-01 08:00:00 | COMP-001    | 78.0             | 3.20             | 12.00          | 1500.0       |  
+| 2024-04-01 08:05:00 | COMP-001    | 78.2             | 3.22             | 12.00          | 1500.1       |  
+| 2024-04-01 08:10:00 | COMP-001    | 78.4             | 3.24             | 12.00          | 1500.2       |  
+| 2024-04-01 08:15:00 | COMP-001    | 78.6             | 3.26             | 12.01          | 1500.3       |  
+| 2024-04-01 08:20:00 | COMP-001    | 78.8             | 3.28             | 12.01          | 1500.4       |  
+| 2024-04-01 08:25:00 | COMP-001    | 79.0             | 3.30             | 12.01          | 1500.5       |  
+| 2024-04-01 08:30:00 | COMP-001    | 79.2             | 3.32             | 12.02          | 1500.6       |  
+| 2024-04-01 08:35:00 | COMP-001    | 79.4             | 3.34             | 12.02          | 1500.7       |  
+| 2024-04-01 08:40:00 | COMP-001    | 79.6             | 3.36             | 12.02          | 1500.8       |  
+| 2024-04-01 08:45:00 | COMP-001    | 79.8             | 3.38             | 12.03          | 1500.9       |  
+| 2024-04-01 08:50:00 | COMP-001    | 80.0             | 3.40             | 12.03          | 1501.0       |  
+| 2024-04-01 08:55:00 | COMP-001    | 80.0             | 3.40             | 12.03          | 1501.1       |  
+| 2024-04-01 09:00:00 | COMP-001    | 80.1             | 3.41             | 12.03          | 1501.2       |  
+| 2024-04-01 09:05:00 | COMP-001    | 80.2             | 3.42             | 12.03          | 1501.3       |  
+| 2024-04-01 09:10:00 | COMP-001    | 80.3             | 3.43             | 12.04          | 1501.4       |  
+| 2024-04-01 09:15:00 | COMP-001    | 88.0             | 4.80             | 11.80          | 1501.5       |  
+| 2024-04-01 09:20:00 | COMP-001    | 88.5             | 4.85             | 11.79          | 1501.6       |  
+| 2024-04-01 09:25:00 | COMP-001    | 89.0             | 4.90             | 11.78          | 1501.7       |  
+| 2024-04-01 09:30:00 | COMP-001    | 89.2             | 4.92             | 11.78          | 1501.8       |  
+| 2024-04-01 09:35:00 | COMP-001    | 89.5             | 4.95             | 11.77          | 1501.9       |  
+| 2024-04-01 09:40:00 | COMP-001    | 89.7             | 4.98             | 11.77          | 1502.0       |  
+| 2024-04-01 09:45:00 | COMP-001    | 90.0             | 5.00             | 11.76          | 1502.1       |  
+| 2024-04-01 09:50:00 | COMP-001    | 90.2             | 5.02             | 11.76          | 1502.2       |  
+| 2024-04-01 09:55:00 | COMP-001    | 90.5             | 5.05             | 11.75          | 1502.3       |  
+| 2024-04-01 10:00:00 | COMP-001    | 90.7             | 5.08             | 11.75          | 1502.4       |  
+| 2024-04-01 10:05:00 | COMP-001    | 88.0             | 4.20             | 12.00          | 1502.5       |  
+| 2024-04-01 10:10:00 | COMP-001    | 86.0             | 3.90             | 12.02          | 1502.6       |  
+| 2024-04-01 10:15:00 | COMP-001    | 84.0             | 3.70             | 12.03          | 1502.7       |  
+| 2024-04-01 10:20:00 | COMP-001    | 82.0             | 3.55             | 12.03          | 1502.8       |  
+| 2024-04-01 10:25:00 | COMP-001    | 81.0             | 3.50             | 12.04          | 1502.9       |  
+| 2024-04-01 10:30:00 | COMP-001    | 80.5             | 3.48             | 12.04          | 1503.0       |  
+| 2024-04-01 10:35:00 | COMP-001    | 80.3             | 3.46             | 12.04          | 1503.1       |  
+| 2024-04-01 10:40:00 | COMP-001    | 80.2             | 3.45             | 12.04          | 1503.2       |  
+| 2024-04-01 10:45:00 | COMP-001    | 80.1             | 3.44             | 12.05          | 1503.3       |  
+| 2024-04-01 10:50:00 | COMP-001    | 80.0             | 3.43             | 12.05          | 1503.4       |  
+| 2024-04-01 10:55:00 | COMP-001    | 79.9             | 3.42             | 12.05          | 1503.5       |  
+| 2024-04-01 11:00:00 | COMP-001    | 79.8             | 3.41             | 12.05          | 1503.6       |  
+| 2024-04-01 11:05:00 | COMP-001    | 79.7             | 3.40             | 12.05          | 1503.7       |  
+| 2024-04-01 11:10:00 | COMP-001    | 79.6             | 3.39             | 12.06          | 1503.8       |  
+| 2024-04-01 11:15:00 | COMP-001    | 79.5             | 3.38             | 12.06          | 1503.9       |  
+| 2024-04-01 11:20:00 | COMP-001    | 79.4             | 3.37             | 12.06          | 1504.0       |  
+| 2024-04-01 11:25:00 | COMP-001    | 79.3             | 3.36             | 12.06          | 1504.1       |  
+| 2024-04-01 11:30:00 | COMP-001    | 79.2             | 3.35             | 12.06          | 1504.2       |  
+| 2024-04-01 11:35:00 | COMP-001    | 79.1             | 3.34             | 12.07          | 1504.3       |  
+| 2024-04-01 11:40:00 | COMP-001    | 79.0             | 3.33             | 12.07          | 1504.4       |  
+| 2024-04-01 11:45:00 | COMP-001    | 78.9             | 3.32             | 12.07          | 1504.5       |  
+| 2024-04-01 11:50:00 | COMP-001    | 78.8             | 3.31             | 12.07          | 1504.6       |  
+| 2024-04-01 11:55:00 | COMP-001    | 78.7             | 3.30             | 12.07          | 1504.7       |  
+| 2024-04-01 12:00:00 | COMP-001    | 78.6             | 3.29             | 12.08          | 1504.8       |  
+| 2024-04-01 12:05:00 | COMP-001    | 78.5             | 3.28             | 12.08          | 1504.9       |  
+
+### Dataset 2: Maintenance Log Data for High‑P
+
+| MaintenanceDate | EquipmentID | MaintenanceType     | Description                                                          | Duration (hrs) | Comments                                              |  
+|-----------------|-------------|---------------------|----------------------------------------------------------------------|----------------|-------------------------------------------------------|  
+| 2024-03-01      | COMP-001    | Preventive Repair    | Replaced compressor bearings and adjusted belt tension               | 3.0            | Noted slight vibration increase pre-repair           |  
+| 2024-03-03      | COMP-001    | Calibration          | Calibrated temperature and pressure sensors per vendor guidelines    | 1.5            | Temperature readings marginally high                  |  
+| 2024-03-05      | COMP-001    | Inspection           | Visual inspection and ultrasonic testing of compressor casing        | 2.0            | Minor wear observed on mounting brackets              |  
+| 2024-03-07      | COMP-001    | Lubrication          | Performed complete lubrication renewal of rotating components        | 1.0            | Lubricant viscosity within specification post-service  |  
+| 2024-03-09      | COMP-001    | Preventive Repair    | Replaced worn-out seals on compressor inlet                          | 2.5            | Leak detected during routine check                    |  
+| 2024-03-11      | COMP-001    | Software Update      | Updated data acquisition software to version 4.2 as per Emerson bulletin | 1.0            | Improved sensor data accuracy observed                 |  
+| 2024-03-13      | COMP-001    | Inspection           | Infrared and vibration analysis of compressor motor                 | 2.0            | Temperature anomaly noted on infrared scan            |  
+| 2024-03-15      | COMP-001    | Calibration          | Recalibrated vibration sensors and verified firmware update         | 1.5            | Minor drift detected in baseline readings             |  
+| 2024-03-17      | COMP-001    | Preventive Repair    | Replaced compressor oil filter and performed oil analysis           | 2.0            | Oil analysis indicated slight contamination            |  
+| 2024-03-19      | COMP-001    | Inspection           | Ultrasonic inspection of compressor drive system                    | 2.5            | No structural issues detected                          |  
+| 2024-03-21      | COMP-001    | Lubrication          | Applied high-performance lubricant to compressor gears              | 1.0            | Lubricant level optimized                              |  
+| 2024-03-23      | COMP-001    | Preventive Repair    | Replaced worn bearing adapter plates                                 | 3.0            | Vibration levels reduced post-repair                  |  
+| 2024-03-25      | COMP-001    | Calibration          | Calibrated pressure transducer on compressor discharge              | 1.5            | Pressure readings now within acceptable range         |  
+| 2024-03-27      | COMP-001    | Inspection           | Visual and thermal inspection of compressor base and mounts         | 2.0            | Minor thermal hotspots observed                        |  
+| 2024-03-29      | COMP-001    | Preventive Repair    | Adjusted compressor belt alignment and tension                      | 2.5            | Post-adjustment vibration levels satisfactory          |  
+| 2024-03-31      | COMP-001    | Software Update      | Updated sensor integration module per Emerson guidelines            | 1.0            | Data acquisition improved                              |  
+| 2024-04-02      | COMP-001    | Inspection           | Comprehensive system diagnostic using vibration and thermal analysis | 2.5            | Anomalies noted; further investigation required         |  
+| 2024-04-04      | COMP-001    | Lubrication          | Replenished compressor hydraulic fluid and checked leak points      | 1.0            | Fluid levels optimal                                   |  
+| 2024-04-06      | COMP-001    | Preventive Repair    | Replaced compressor inlet valve seals due to leak                  | 2.0            | Leak eliminated post-repair                            |  
+| 2024-04-08      | COMP-001    | Calibration          | Recalibrated all sensor arrays on the compressor                   | 1.5            | Baseline reset completed successfully                   |  
+| 2024-04-10      | COMP-001    | Inspection           | Conducted detailed ultrasonic test on compressor casing integrity   | 2.0            | No further corrosion detected                          |  
+| 2024-04-12      | COMP-001    | Preventive Repair    | Replaced aging sensor cables and connectors                         | 1.5            | Intermittent signal drop eliminated                    |  
+| 2024-04-14      | COMP-001    | Software Update      | Installed patch for predictive maintenance algorithm per Emerson guidelines | 1.0            | Algorithm performance improved                         |  
+| 2024-04-16      | COMP-001    | Inspection           | Visual inspection of compressor skid and support structures         | 2.0            | Minor abrasions noted; no immediate risk              |  
+| 2024-04-18      | COMP-001    | Lubrication          | Performed scheduled lubrication of compressor bearings              | 1.0            | No issues post-lubrication                             |  
+| 2024-04-20      | COMP-001    | Preventive Repair    | Replaced compressor drive motor brushes due to wear                | 2.5            | Performance improved post-repair                       |  
+| 2024-04-22      | COMP-001    | Calibration          | Calibrated temperature sensors after repair work                   | 1.5            | Readings now stable                                    |  
+| 2024-04-24      | COMP-001    | Inspection           | Conducted infrared thermography on compressor housing              | 2.0            | Identified cooling inefficiency; flagged for monitoring|  
+| 2024-04-26      | COMP-001    | Preventive Repair    | Adjusted compressor valve timings and replaced worn gaskets        | 3.0            | Performance improved significantly                     |  
+| 2024-04-28      | COMP-001    | Inspection           | Detailed vibration analysis during startup revealed high anomaly   | 2.5            | Anomaly correlates with sensor spike period           |  
+| 2024-04-30      | COMP-001    | Lubrication          | Performed lubrication top-up and oil analysis                     | 1.0            | Oil quality remains within limits                      |  
+| 2024-05-02      | COMP-001    | Preventive Repair    | Replaced damaged components on compressor discharge side           | 2.0            | Pressure stability improved                            |  
+| 2024-05-04      | COMP-001    | Calibration          | Calibrated all measurement devices after routine maintenance       | 1.5            | All sensor readings normalized                         |  
+| 2024-05-06      | COMP-001    | Inspection           | Visual and acoustic inspection during operation                    | 2.0            | No unusual noises detected                             |  
+| 2024-05-08      | COMP-001    | Preventive Repair    | Adjusted cooling system and cleaned heat exchangers               | 2.5            | Cooling performance enhanced                           |  
+| 2024-05-10      | COMP-001    | Software Update      | Implemented Emerson-recommended update for diagnostic software    | 1.0            | Real-time analytics now more precise                  |  
+| 2024-05-12      | COMP-001    | Inspection           | Conducted full operational test with vibration and pressure monitoring | 2.0            | Test results within thresholds                         |  
+| 2024-05-14      | COMP-001    | Lubrication          | Replaced lubricant with high-temperature resistant formula         | 1.0            | Temperature stability slightly improved                |  
+| 2024-05-16      | COMP-001    | Preventive Repair    | Replaced aging compressor seals and gaskets                       | 2.5            | Leakage eliminated post-repair                         |  
+| 2024-05-18      | COMP-001    | Calibration          | Calibrated vibration sensor module after component replacement     | 1.5            | Vibration baseline updated                             |  
+| 2024-05-20      | COMP-001    | Inspection           | Performed detailed ultrasonic inspection of compressor bearings    | 2.0            | Bearing condition marginal; further monitoring required |  
+| 2024-05-22      | COMP-001    | Preventive Repair    | Realigned compressor rotor and adjusted shaft balance              | 3.0            | Vibration levels significantly reduced                 |  
+| 2024-05-24      | COMP-001    | Software Update      | Updated firmware on pressure transducers per new guidelines       | 1.0            | Pressure consistency improved                          |  
+| 2024-05-26      | COMP-001    | Inspection           | Comprehensive diagnostic test on compressor performance            | 2.5            | Minor thermal anomalies noted; recommend continued monitoring |  
+| 2024-05-28      | COMP-001    | Lubrication          | Performed lubrication of compressor drive and rechecked sensor outputs | 1.0            | No further issues detected                             |  
+| 2024-05-30      | COMP-001    | Preventive Repair    | Replaced worn compressor motor components                          | 2.0            | Post-repair performance normal                         |  
+| 2024-06-01      | COMP-001    | Inspection           | Final operational test and certification after series of repairs  | 2.5            | Compressor now meets all performance criteria          |  
+
+Reply "TERMINATE" in the end when everything is done.
+`,
+    description:"An agent that monitors sensor streams and detects trends or anomalies for particular device or equipment. Agent has access to all necessary data.",
+    icon:"🎻",
+    index_name:""
+    },
+  {
+    input_key:"0006",
+    type:"RAG",
+    name:"MaintanceKBAgent",
+    system_message:"",
+    description:"An agent that has access to internal index and can handle RAG tasks, call this agent if you are getting questions on Emerson’s Predictive Maintenance Guide.",
+    icon:"📖",
+    index_name:"ag-demo-pred-maint"
+    }
+];
+
   
 // Safety Scenario
 export const agentsTeam3: Agent[] = [
@@ -1156,103 +1266,3 @@ Reply "TERMINATE" in the end when everything is done.
       index_name:""
       },
 ];
-
-
-//   const sampleMarkdown = `
-// # Sample Markdown Document
-
-// ## Headers
-
-// This is a sample document to demonstrate the Markdown rendering with syntax highlighting and copy-to-clipboard functionality.
-
-// ### Subheader
-
-// Here is a simple Python code snippet:
-
-// \`\`\`python
-// def hello_world():
-//     print("Hello, world!")
-// \`\`\`  
-
-// ## Lists
-
-// ### Unordered List
-
-// - Item 1
-// - Item 2
-// - Item 3
-
-// ### Ordered List
-
-// 1. First item
-// 2. Second item
-// 3. Third item
-//  
-
-
-  // const debugMessages: ChatMessage[] = [
-  //   {
-  //     user: 'MagenticOneOrchestrator',
-  //     message: "Hello! How can I help you today?",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'MagenticOneOrchestrator',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'User',
-  //     message: "Create a Python script that calculates the Fibonacci series below 1000",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'User',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'Coder',
-  //     message: sampleMarkdown,
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'Coder',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'MagenticOneOrchestrator',
-  //     message: "# Heading 2\n\n- List item 1\n  - List item 2\n\n**Bold text**\n\n```python\nprint(\"Hello, World!\")\n```",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'MagenticOneOrchestrator',
-  //     session_id: 'dummy-generated-session-id', 
-  //   },
-  //   {
-  //     user: 'User',
-  //     message: "When and where is the next game of Arsenal, print a link for purchase",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'User',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'WebSurfer',
-  //     message: "```python\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\nprint(\"Hello, World!\")\n```",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'WebSurfer',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'MagenticOneOrchestrator',
-  //     message: "This is a Python script that prints 'Hello, World!' 10 times. Instead of printing, I can execute this script for you. Do you want me to execute it?",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'MagenticOneOrchestrator',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  //   {
-  //     user: 'MagenticOneOrchestrator',
-  //     message: "I found 3 restaurants for you. Here are the top 2:",
-  //     time: new Date().toISOString(),
-  //     // content: response.data.content,
-  //     source: 'MagenticOneOrchestrator',
-  //     session_id: 'dummy-generated-session-id',
-  //   },
-  // ];

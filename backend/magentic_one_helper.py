@@ -19,7 +19,7 @@ from autogen_core import SingleThreadedAgentRuntime
 from autogen_core import CancellationToken
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 import tempfile
-# from promptflow.tracing import start_trace
+
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from dotenv import load_dotenv
 load_dotenv()
@@ -32,9 +32,6 @@ token_provider = get_bearer_token_provider(
     azure_credential, "https://cognitiveservices.azure.com/.default"
 )
 
-#You can view the traces in http://127.0.0.1:23333/v1.0/ui/traces/
-# start_trace()
-#analyze the file maintenance.csv data in the folder pred_maint, use coder and executor
 def generate_session_name():
     '''Generate a unique session name based on random sci-fi words, e.g. quantum-cyborg-1234'''
     import random

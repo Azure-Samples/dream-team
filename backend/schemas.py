@@ -7,9 +7,13 @@ from uuid import UUID
 class ChatMessageBase(BaseModel):
     content: str
 
+class User(BaseModel):
+    user_id: str
+
 class ChatMessageCreate(ChatMessageBase):
     content: str
     agents: Optional[str] = None
+    user_id: Optional[str] = None
 
 class ChatMessageResponse(ChatMessageBase):
     id: UUID

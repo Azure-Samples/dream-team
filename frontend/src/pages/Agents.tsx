@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
+// import { useUserContext } from '@/contexts/UserContext'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,24 +17,15 @@ import {
 } from "@/components/ui/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Plus, Download, Delete} from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// import remarkBreaks from 'remark-breaks'
-// import { Textarea } from "@/components/ui/textarea"
 
 import { AgentsSetup } from '@/components/agents-setup';
-// import { MarkdownRenderer } from '@/components/markdown-display';
 import { ModeToggle } from '@/components/mode-toggle'
 import { LoginCard } from "@/components/login";
 
 
-// import h1 from '@/assets/h1.png';
-// import lBrain from '@/assets/l-brain.png';
-// import lPen from '@/assets/l-pen.png';
-// import lSearch from '@/assets/l-search.png';
-// import lAi from '@/assets/l-ai.png';
 import ag from '@/assets/ag.png';
 
 import { getAvatarSrc } from '@/components/agents-definition'
@@ -41,7 +33,7 @@ import { getAvatarSrc } from '@/components/agents-definition'
 
 // TODO: FUJ! How to get ENV vars from SWA?
 // Define environment variables with default values
-const BASE_URL = import.meta.env.VITE_BASE_URL || "https://autogen-demo-be2.whiteground-dbb1b0b8.eastus.azurecontainerapps.io";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "local";
 const ALLWAYS_LOGGED_IN =
   import.meta.env.VITE_ALLWAYS_LOGGED_IN === "true" ? true : false;
 const ACTIVATION_CODE = import.meta.env.VITE_ACTIVATON_CODE || "0000";
@@ -72,9 +64,9 @@ interface Team {
 
 export default function Agents() {
 
-  
-//   const [sessionID, setSessionID] = useState('')
+
   const [isAuthenticated, setIsAuthenticated] = useState(BASE_URL)
+  // const { userInfo } = useUserContext();
   
   const [agents, setAgents] = useState<Agent[]>([
     {
@@ -242,7 +234,7 @@ export default function Agents() {
       <LoginCard handleLogin={handleLogin} />
     ) : (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar onTeamSelect={handleTeamSelect}/>
+      <AppSidebar onTeamSelect={handleTeamSelect} />
       <SidebarInset>
         <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-4 z-10 shadow">
           <div className="flex items-center gap-2 px-4 w-full">

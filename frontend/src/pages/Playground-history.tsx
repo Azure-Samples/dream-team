@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
+import { useUserContext } from '@/contexts/UserContext'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -65,6 +66,7 @@ export default function PlaygroundHistory() {
   // New state to store the selected conversation data
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [isConversationLoading, setIsConversationLoading] = useState(false);
+  const { userInfo } = useUserContext();
 
   // Updated function to fetch conversation details
   const handleShowDetails = async (userId: string, sessionId: string) => {
@@ -88,20 +90,23 @@ export default function PlaygroundHistory() {
   }
   
 
-  useEffect(() => {
-    async function fetchHistory() {
+
+    async function fetchHistory(userId: string) {
       try {
         setIsHistoryLoading(true);
-        const response = await axios.post(`${BASE_URL}/conversations`);
-        // console.log('Response:', response.data);
+        console.log('Fetching for:', userId);
+        const response = await axios.post(`${BASE_URL}/conversations`, { 
+                user_id: userId,
+              });
+        console.log('Response:', response.data);
         setHistoryItems(response.data);
         setIsHistoryLoading(false);
       } catch (error) {
         console.error("Failed to load history:", error);
       }
     }
-    fetchHistory();
-  }, []);
+    
+  
 
   const handleLogin = (email: string, password: string) => {
     console.log('Logging in with:', email)
@@ -116,11 +121,11 @@ export default function PlaygroundHistory() {
   //   setIsAuthenticated(false)
   // }
 
-  const handleDeleteSession = async (sessionId: string) => {
+  const handleDeleteSession = async (user_id:string, sessionId: string) => {
     try {
-      await axios.post(`${BASE_URL}/conversations/delete?session_id=${sessionId}`);
+      await axios.post(`${BASE_URL}/conversations/delete?session_id=${sessionId}&user_id=${user_id}`);
       // Remove the deleted session from the state
-      setHistoryItems(prev => prev.filter(item => item.session_id !== sessionId));
+      setHistoryItems(prev => prev.filter(item => item.session_id !== sessionId ));
     } catch (error) {
       console.error("Failed to delete session:", error);
     }
@@ -138,7 +143,15 @@ export default function PlaygroundHistory() {
         <LoginCard handleLogin={handleLogin} />
       ) : (
         <SidebarProvider defaultOpen={true}>
-          <AppSidebar onTeamSelect={handleTeamSelect}/>
+          <AppSidebar onTeamSelect={handleTeamSelect} />
+          {(() => {
+            useEffect(() => {
+              if (userInfo.email) {
+                fetchHistory(userInfo.email);
+              }
+            }, [userInfo.email]);
+            return null;
+          })()}
           <SidebarInset>
             <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-4 z-10 shadow">
               <div className="flex items-center gap-2 px-4 w-full">
@@ -228,7 +241,7 @@ export default function PlaygroundHistory() {
                                     <Eye />
                                   </Button>
                                   &nbsp;&nbsp;
-                                  <Button variant="destructive" size="icon" onClick={() => handleDeleteSession(item.session_id)}>
+                                  <Button variant="destructive" size="icon" onClick={() => handleDeleteSession(item.user_id,item.session_id)}>
                                     <Trash  />
                                   </Button>
                                 </TableCell>

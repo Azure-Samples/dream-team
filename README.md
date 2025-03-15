@@ -65,6 +65,20 @@ azd up
 
 > Note: 1/ After the deployment copy the backend url and nder frontend folder update sample.env to .env file and copy the backend url to VITE_BASE_URL 2/ run azd up again
 
+## 4. [Optional] Ingest the demo documents into your AI Search
+
+In case you want to use the demo data, you can run the ingestion script to populate your AI Search with the demo data. This step is optional and is only needed if you want to use the demo data.
+
+```bash
+cd backend
+python -m aisearch.py
+```
+
+> Notes:
+> 1. This step assumes you have already setup your infrastructure and your local `.env` file has been populated with the necessary values.
+> 2. Make sure your identity has appropriate acccess to AI Search (role `Search Index Data Contributor`) and to created storage (role `Storage Blob Data Contributor`), otherwise you will get an error when running the ingestion script.
+> 3. This creates four indexes: ag-demo-fsi-upsell, ag-demo-pred-maint, ag-demo-retail, ag-demo-safety
+
 # Notes 
 - While using Web Surfer agent, you might want to change Content Safety on Azure OpenAI to accomodate your needs
 - currently it is "bring your own AI Search" (BYOS) - since its assuming you have your own search engine, we are working on a solution to make it easier for you

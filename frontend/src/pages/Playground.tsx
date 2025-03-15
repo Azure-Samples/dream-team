@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
+import { useUserContext } from '@/contexts/UserContext'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -106,6 +107,7 @@ export default function App() {
   // const [isSettingsCardVisible, setIsSettingsCardVisible] = useState(false)
   const [isTyping, setIsTyping] = useState(false);
   const [agents, setAgents] = useState<Agent[]>(agentsTeam1);
+  const { userInfo } = useUserContext();
 
   // Initialize agents from default team (will be updated by sidebar selection)
   // Optionally use an effect to set initial team agents if needed
@@ -152,7 +154,45 @@ export default function App() {
     setAgents(updatedAgents);
   };
 
-  const addRAGAgent = (name: string, description: string, indexName: string) => {
+  const addRAGAgent = async (
+    name: string,
+    description: string,
+    indexName: string,
+    files: FileList | null
+  ) => {
+    if (files && files.length > 0) {
+      const temporaryRandomName = Math.random().toString(36).substring(2, 15);
+      const newAgent = {
+        input_key: temporaryRandomName,
+        type: "temporary",
+        name: "Processing & Uploading...",
+        system_message: "",
+        description,
+        icon: "⌛",
+        index_name: "tmp"
+      };
+      setAgents([...agents, newAgent]);
+
+      const formData = new FormData();
+      formData.append("indexName", indexName);
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+           try {
+          const response = await axios.post(`${BASE_URL}/upload`, formData);
+          if (response.data.status === "error") {
+              console.error('Upload API Error:', response.data.message);
+              //TODO handle error -> propagate to UI
+              return;
+          }
+          console.log('Upload response:', response.data);
+      } catch (error) {
+          console.error('Upload error:', error);
+      } finally {
+          // Remove the temporary agent after processing
+          setAgents(agents.filter((agent) => agent.input_key !== temporaryRandomName));
+      }
+    }
     const newAgent = {
       input_key: (agents.length + 1).toString().padStart(4, '0'),
       type: "RAG",
@@ -221,11 +261,12 @@ export default function App() {
     try {
       const response = await axios.post(`${BASE_URL}/start`, { 
         content: userMessage, 
+        user_id: userInfo.email, // Use directly from context
         agents: JSON.stringify(selectedAgents)
       });
       const sessionId = response.data.response;  // Get the session ID from the response
       setSessionID(sessionId);
-      const eventSource = new EventSource(`${BASE_URL}/chat-stream?session_id=${encodeURIComponent(sessionId)}`);
+      const eventSource = new EventSource(`${BASE_URL}/chat-stream?session_id=${encodeURIComponent(sessionId)}&user_id=${encodeURIComponent(userInfo.email)}`);
       eventSource.onmessage = (event) => {
         // console.log('EventSource message:', event.data);
         const data = JSON.parse(event.data);
@@ -287,7 +328,7 @@ export default function App() {
       <LoginCard handleLogin={handleLogin} />
     ) : (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar onTeamSelect={handleTeamSelect} />
+      <AppSidebar onTeamSelect={handleTeamSelect} /> {/* Remove onUserNameChange prop */}
       <SidebarInset>
         <header className="flex sticky top-0 bg-background h-14 shrink-0 items-center gap-2 border-b px-4 z-10 shadow">
           <div className="flex items-center gap-2 px-4 w-full">
@@ -310,6 +351,26 @@ export default function App() {
               </BreadcrumbList>
             </Breadcrumb>
             <div className="ml-auto hidden items-center gap-2 md:flex">
+     
+            {/* if the session end display elapsed time */}
+            <div className="flex gap-0 p-0 pt-0 justify-end">
+              {sessionTime && !isTyping ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <p className='text-sm text-muted-foreground'>Session {sessionID} completed in {sessionTime}s.</p>
+                  <Button variant="secondary" onClick={() => stopSession()}>
+                    Run new
+                  </Button>
+                </div>
+              ) : null}
+              {isTyping ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <p className='text-sm text-muted-foreground'>Running {sessionID} session...</p>
+                  <Loader2 className="lucide lucide-loader2 mr-2 h-4 animate-spin loader-green" />
+                  {/* button to stop the session */}
+                  <Button variant="destructive" onClick={() => stopSession()}>Stop</Button>
+                </div>
+              ) : <p className='text-sm text-muted-foreground loader-green'></p>}
+            </div>
         
    
             {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
@@ -340,25 +401,6 @@ export default function App() {
               isCollapsed={isTyping || (sessionTime) ? true : false}
             />
            {/* if session is running display loader */}
-        {/* if the session end display elapsed time */}
-        <div className="flex gap-0 p-2 pt-0 justify-end">
-          {sessionTime && !isTyping ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <p className='text-sm text-muted-foreground'>Session {sessionID} completed in {sessionTime}s.</p>
-              <Button variant="secondary" onClick={() => stopSession()}>
-                Run new
-              </Button>
-            </div>
-          ) : null}
-          {isTyping ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <p className='text-sm text-muted-foreground'>Running {sessionID} session...</p>
-              <Loader2 className="lucide lucide-loader2 mr-2 h-4 animate-spin loader-green" />
-              {/* button to stop the session */}
-              <Button variant="destructive" onClick={() => stopSession()}>Stop</Button>
-            </div>
-          ) : <p className='text-sm text-muted-foreground loader-green'></p>}
-        </div>
           <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
             {/* Chat Interface */}
             <Card className={`md:col-span-2 h-full flex flex-col`}>
@@ -437,7 +479,7 @@ export default function App() {
                 <Button variant="outline" className="text-sm bg-muted" onClick={() => setUserMessage("Use advanced financial modelling, scenario analysis, geopolitical forecasting, and risk quantification to produce a comprehensive, data-driven assessment of current market forecasts, commodity price trends, and OPEC announcements. In this process, identify and deeply evaluate the relative growth potential of various upstream investment areas—ranging from unconventional reservoirs to deepwater projects and advanced EOR techniques—across Africa, the Middle East, and Central Europe. Based on publicly available data (e.g., IEA, EIA, and OPEC bulletins), synthesize your findings into specific, country-level recommendations that incorporate ROI calculations, scenario-based risk assessments, and robust justifications reflecting both market and geopolitical considerations. Present the final deliverable as a well-structured table​")}><ChartNoAxesCombined /> Market assessment...</Button>
                 </div>
                 <div className="flex space-x-2">
-                <Button variant="outline" className="text-sm bg-muted" onClick={() => setUserMessage("Analyze the sensor data and historical maintenance logs for the high‑pressure gas compressor (EquipmentID: COMP-001). Using real‑time measurements of temperature, vibration, and pressure, along with the asset’s running hours, detect any early signs of mechanical degradation. Correlate these findings with the vendor’s guidelines (downloaded from Emerson’s Predictive Maintenance Guide for Gas Compressors) and the maintenance history. In particular, determine if rising vibration amplitudes, combined with temperature excursions and delayed calibrations, suggest that the compressor is trending toward failure. Based on this analysis, generate a detailed maintenance alert including a prioritized repair schedule and recommended corrective actions to mitigate downtime.")}><Wrench /> Predictive Maintenance...</Button>
+                <Button variant="outline" className="text-sm bg-muted" onClick={() => setUserMessage("Analyze the sensor data and historical maintenance logs for the high‑pressure gas compressor (EquipmentID: COMP-001). Using real‑time measurements of temperature, vibration, and pressure, along with the asset’s running hours, detect any early signs of mechanical degradation. After this, correlate these findings with the vendor’s guidelines (downloaded from Emerson’s Predictive Maintenance Guide for Gas Compressors) and the maintenance history. In particular, determine if rising vibration amplitudes, combined with temperature excursions and delayed calibrations, suggest that the compressor is trending toward failure. Based on this analysis, generate a detailed maintenance alert (text only, formatted as Markdown) including a prioritized repair schedule and recommended corrective actions to mitigate downtime.")}><Wrench /> Predictive Maintenance...</Button>
                 <Button variant="outline" className="text-sm bg-muted" onClick={() => setUserMessage("Analyze the internal incident reports for the upstream oil and gas facility (Asset: Well Site A-17) to detect compliance gaps. Using real‑time incident data (including near misses, safety violations, and environmental events) along with historical incident outcomes, correlate these findings with the updated BSEE Incident Reporting & HSE Compliance Guidelines 2024. Identify missing data fields or delayed reporting that do not meet the new regulatory requirements and generate a prioritized set of corrective recommendations to enhance incident reporting and overall safety compliance. Your output should include detailed observations on which aspects of the incident logs (e.g., incomplete descriptions, inconsistent outcome classifications) need improvement.​")}><ShieldAlert /> Safety...</Button>
                 <Button variant="outline" className="text-sm bg-muted" onClick={() => setUserMessage("Analyze the financial transaction data for our customer base, focusing on identifying customers with frequent overdrafts, recurring cash flow gaps, and rapid declines in account balances. Use this analysis, combined with customer profile details (such as account balance, current loan amount, and credit score), and cross‑reference these findings with the risk thresholds from the Experian Credit Risk Scorecard PDF. Your task is to dynamically generate personalized upsell recommendations for each customer. The recommendations should include suggestions such as higher credit lines or tailored personal loans, with actionable insights based on each customer’s behavior.")}><DollarSign /> Loan upsell...</Button>
                 <Button variant="outline" className='text-sm bg-muted' onClick={() => setUserMessage("Analyze the real‑time inventory and sales data for the cinema concessions at Well‑in‑Mall Cinema (Location: Cinema A1). Your task is to identify products that are nearing or falling below their reorder points. Cross‑reference these findings with the recommended restocking strategies outlined in the Microsoft Dynamics 365 Retail Inventory & Supply Chain Optimization Best Practices Guide 2024 (see link above). Additionally, use real‑time supply chain news—retrieved via our web surfer agent—to adjust for any external factors affecting lead times. Based on your analysis, produce a detailed restocking alert report that includes: \n\n - A prioritized list of items needing replenishment. \n\n - Recommended order quantities based on recent sales trends and forecasted demand. \n\n - Actionable recommendations to optimize the supply chain and reduce stockouts..")}><ShoppingBasket /> Retail...</Button>

@@ -23,12 +23,14 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
-import h1 from '@/assets/h1.png';
+import { useUserContext } from "@/contexts/UserContext"
+import h1 from '@/assets/h1.png'
 
 import { agentsTeam1, agentsTeam2, agentsTeam3, agentsTeam4, agentsTeamFSI1, agentsTeamRetail1 } from '@/components/agents-definition';
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onTeamSelect: (team: { teamId: string; agents: any[] }) => void;
+  // Removed onUserNameChange prop
 }
 
 const data = {
@@ -145,9 +147,16 @@ const data = {
   ],
 }
 
-export function AppSidebar({ onTeamSelect, ...restProps }: AppSidebarProps) {
+export function AppSidebar({
+  onTeamSelect,
+  ...sidebarProps
+}: AppSidebarProps) {
+  const { userInfo } = useUserContext();
+  
+  // Removed the useEffect for onUserNameChange
+
   return (
-    <Sidebar collapsible="icon" {...restProps}>
+    <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} onTeamSelect={onTeamSelect} />
       </SidebarHeader>
@@ -155,8 +164,8 @@ export function AppSidebar({ onTeamSelect, ...restProps }: AppSidebarProps) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userInfo} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -11,7 +11,7 @@ dependencies = [
     "autogen-ext[azure]==0.4.9",
     "autogen-ext[docker]==0.4.9",
     "autogen-core==0.4.9",
-    "azure-search-documents==11.5.2",
+    "azure-search-documents==11.6.0b10",
     "markitdown==0.0.2",
     "aiofiles==24.1.0",
     "aiohttp==3.11.11",

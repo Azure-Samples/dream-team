@@ -391,11 +391,22 @@ resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
               name: 'AZURE_SEARCH_SERVICE_ENDPOINT'
               value: 'https://${aiSearch.name}.search.windows.net'
             }
-            // {
-            //   name: 'AZURE_SEARCH_ADMIN_KEY'
-            //   value: aiSearch.listAdminKeys().primaryKey
-            // }
-      
+            {
+              name: 'AZURE_OPENAI_EMBEDDING_MODEL'
+              value: openaideploymentembedding.name
+            }
+            {
+              name: 'AZURE_STORAGE_ACCOUNT_ENDPOINT'
+              value: storageAcct.properties.primaryEndpoints.blob
+            }
+            {
+              name: 'AZURE_STORAGE_ACCOUNT_ID'
+              value: storageAcct.id
+            }
+            {
+              name: 'UAMI_RESOURCE_ID'
+              value: identity.id
+            }
           ],
           env,
           map(secrets, secret => {
@@ -579,6 +590,16 @@ resource assignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@20
   }
 }
 
+resource blobContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAcct.id, identity.id, 'Storage Blob Data Contributor')
+  scope: storageAcct
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+  }
+}
+
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
 output name string = app.name
 output uri string = 'https://${app.properties.configuration.ingress.fqdn}'
@@ -589,7 +610,9 @@ output cosmosdb_uri string = cosmosDb.properties.documentEndpoint
 output cosmosdb_database string = 'ag_demo'
 output container_name string = 'ag_demo'
 output cosmosDbId string = cosmosDb.id
-
-// Add output for AI Search endpoint
+output storageAccountId string = storageAcct.id
+output storageAccountEndpoint string = storageAcct.properties.primaryEndpoints.blob
+output userAssignedIdentityId string = identity.id
+output opemaiEmbeddingModel string = openaideploymentembedding.name
+output opemaiEmbeddingModelId string = openaideploymentembedding.id
 output ai_search_endpoint string = 'https://${aiSearch.name}.search.windows.net'
-// output ai_search_admin_key string = aiSearch.listAdminKeys().primaryKey

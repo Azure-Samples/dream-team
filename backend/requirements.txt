@@ -15,7 +15,8 @@ autogen-core==0.4.9
 
 #promptflow-tracing==1.17.2  
 #promptflow-devkit==1.17.2 
-azure-search-documents==11.5.2  
+# azure-search-documents==11.5.2  
+azure-search-documents==11.6.0b10
 markitdown>=0.0.2  
 aiofiles==24.1.0  
 aiohttp==3.11.11  

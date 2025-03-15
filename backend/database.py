@@ -1,6 +1,7 @@
 import os
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.identity import DefaultAzureCredential
+from typing import Optional, List, Dict
 
 from autogen_agentchat.base import TaskResult
 from autogen_agentchat.messages import MultiModalMessage, TextMessage, ToolCallExecutionEvent, ToolCallRequestEvent
@@ -106,19 +107,27 @@ def store_conversation(conversation: TaskResult, conveersation_details: AutoGenM
     response = container.create_item(body=conversation_document_item)
     return response
 
-def fetch_user_conversatons(user_id: str):
+def fetch_user_conversatons(user_id: Optional[str] = None) -> List[Dict]:
     """
-    Retrieves all documents from the Cosmos DB container where user_id equals the given parameter.
+    Retrieves all documents from the Cosmos DB container. If user_id is provided,
+    the results are filtered to match the given user_id. Otherwise, all documents
+    are retrieved.
     
     Parameters:
-        user_id (str): The user ID to filter the documents.
+        user_id (Optional[str]): The user ID to filter the documents. When None, no filter is applied.
     
     Returns:
-        List[dict]: A list of documents that match the given user_id.
+        List[dict]: A list of documents that match the given user_id, or all documents if user_id is None.
     """
     container = get_db()
-    query = "SELECT c.user_id, c.session_id, c.timestamp FROM c WHERE c.user_id = @userId"
-    parameters = [{"name": "@userId", "value": user_id}]
+    
+    if user_id is None:
+        query = "SELECT c.user_id, c.session_id, c.timestamp FROM c"
+        parameters = []
+    else:
+        query = "SELECT c.user_id, c.session_id, c.timestamp FROM c WHERE c.user_id = @userId"
+        parameters = [{"name": "@userId", "value": user_id}]
+    
     items = list(container.query_items(
         query=query,
         parameters=parameters,

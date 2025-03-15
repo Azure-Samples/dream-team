@@ -16,9 +16,13 @@ from magentic_one_helper import MagenticOneHelper
 from autogen_agentchat.messages import MultiModalMessage, TextMessage, ToolCallExecutionEvent, ToolCallRequestEvent
 from autogen_agentchat.base import TaskResult
 from magentic_one_helper import generate_session_name
+import aisearch
 
 from datetime import datetime 
 from schemas import AutoGenMessage
+from typing import List
+from fastapi import File, Form
+import time
 
 print("Starting the server...")
 #print(f'AZURE_OPENAI_ENDPOINT:{os.getenv("AZURE_OPENAI_ENDPOINT")}')
@@ -168,9 +172,9 @@ async def summarize_plan(plan, client):
     
     plan_summary = result.content
     return plan_summary
-async def display_log_message(log_entry, logs_dir, session_id, user, client=None):
+async def display_log_message(log_entry, logs_dir, session_id, user_id, client=None):
     _log_entry_json = log_entry
-    _user_id = user["sub"]
+    _user_id = user_id
     
     _response = AutoGenMessage(
         time=get_current_time(),
@@ -215,7 +219,7 @@ async def display_log_message(log_entry, logs_dir, session_id, user, client=None
 
     _ = crud.save_message(
             id=None, # it is auto-generated
-            user_id=user["sub"],
+            user_id=_user_id,
             session_id=session_id,
             message=_response.to_json(),
             agents=None,
@@ -273,13 +277,14 @@ async def chat_endpoint(
     message: schemas.ChatMessageCreate,
     user: dict = Depends(validate_token)
 ):
-    print("User:", user["sub"])
+    # print("User:", user["sub"])
+    _user_id=message.user_id if message.user_id else user["sub"]
+    print("Provided user_id:", message.user_id)
     _agents = json.loads(message.agents) if message.agents else MAGENTIC_ONE_DEFAULT_AGENTS
     _session_id = generate_session_name()
-    # Save user message into conversation file
     conversation = crud.save_message(
         id=uuid.uuid4(),
-        user_id=user["sub"],
+        user_id=_user_id,
         session_id=_session_id,
         message={"content": message.content, "role": "user"},
         agents=_agents,
@@ -292,7 +297,7 @@ async def chat_endpoint(
         content=message.content,
         response=_session_id,
         timestamp="2021-01-01T00:00:00",
-        user_id=user["sub"],
+        user_id=_user_id,
         orm_mode=True
     )
     return db_message
@@ -302,6 +307,7 @@ async def chat_endpoint(
 @app.get("/chat-stream")
 async def chat_stream(
     session_id: str = Query(...),
+    user_id: str = Query(...),
     # db: Session = Depends(get_db),
     user: dict = Depends(validate_token)
 ):
@@ -311,7 +317,7 @@ async def chat_stream(
         os.makedirs(logs_dir)
 
     # get the conversation from the database using user and session id
-    conversation = crud.get_conversation(user["sub"], session_id)
+    conversation = crud.get_conversation(user_id, session_id)
     # get first message from the conversation
     first_message = conversation["messages"][0]
     # get the task from the first message as content
@@ -343,7 +349,7 @@ async def chat_stream(
     async def event_generator(stream):
 
         async for log_entry in stream:
-            json_response = await display_log_message(log_entry=log_entry, logs_dir=logs_dir, session_id=magentic_one.session_id, client=magentic_one.client, user=user)    
+            json_response = await display_log_message(log_entry=log_entry, logs_dir=logs_dir, session_id=magentic_one.session_id, client=magentic_one.client, user_id=user_id)    
             yield f"data: {json.dumps(json_response.to_json())}\n\n"
       
         # # DBG
@@ -360,7 +366,7 @@ async def stop(session_id: str = Query(...)):
     try:
         print("Stopping session:", session_id)
         cancellation_token = session_data[session_id].get("cancellation_token")
-        if cancellation_token:
+        if (cancellation_token):
             cancellation_token.cancel()
             return {"status": "success", "message": f"Session {session_id} cancelled successfully."}
         else:
@@ -371,10 +377,13 @@ async def stop(session_id: str = Query(...)):
 
 # New endpoint to retrieve all conversations.
 @app.post("/conversations")
-async def list_all_conversations(user: dict = Depends(validate_token)):
+async def list_all_conversations(
+    user_id: schemas.User,
+    user: dict = Depends(validate_token)
+    ):
     try:
-        # conversations = crud.get_all_conversations()
-        conversations = fetch_user_conversatons(user_id=user["sub"])
+        # conversations = fetch_user_conversatons(user_id=user_id.user_id)
+        conversations = fetch_user_conversatons(user_id=None) # Fetch all conversations
         return conversations
     except Exception as e:
         print(f"Error retrieving conversations: {str(e)}")
@@ -384,14 +393,15 @@ async def list_all_conversations(user: dict = Depends(validate_token)):
 @app.post("/conversations/user")
 async def list_user_conversation(request_data: dict = None, user: dict = Depends(validate_token)):
     session_id = request_data.get("session_id") if request_data else None
-    conversations = fetch_user_conversation(user["sub"], session_id=session_id)
+    user_id = request_data.get("user_id") if request_data else None
+    conversations = fetch_user_conversation(user_id, session_id=session_id)
     return conversations
 
 @app.post("/conversations/delete")
-async def delete_conversation(session_id: str = Query(...), user: dict = Depends(validate_token)):
+async def delete_conversation(session_id: str = Query(...), user_id: str = Query(...), user: dict = Depends(validate_token)):
     try:
         # result = crud.delete_conversation(user["sub"], session_id)
-        result = delete_user_conversation(user_id=user["sub"], session_id=session_id)
+        result = delete_user_conversation(user_id=user_id, session_id=session_id)
         if result:
             return {"status": "success", "message": f"Conversation {session_id} deleted successfully."}
         else:
@@ -404,3 +414,15 @@ async def delete_conversation(session_id: str = Query(...), user: dict = Depends
 async def health_check():
     print("Health check endpoint called")
     return {"status": "healthy"}
+
+@app.post("/upload")
+async def upload_files(indexName: str = Form(...), files: List[UploadFile] = File(...)):
+    print("Received indexName:", indexName)
+    for file in files:
+        print("Uploaded file:", file.filename)
+    try:
+        aisearch.process_upload_and_index(indexName, files)
+    except Exception as err:
+        print(f"Error processing upload and index: {err}")
+        return {"status": "error", "message": str(err)}
+    return {"status": "success", "filenames": [f.filename for f in files]}

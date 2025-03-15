@@ -22,7 +22,7 @@ interface AgentsSetupProps {
   agents: Agent[];
   removeAgent: (key: string) => void;
   addAgent: (name: string, description: string, systemMessage: string) => void;
-  addRAGAgent: (name: string, description: string, indexName: string) => void;
+  addRAGAgent: (name: string, description: string, indexName: string, files: FileList | null) => void;
   editAgent: (key: string, name: string, description: string, systemMessage: string) => void; // <-- added new prop for editing
   getAvatarSrc: (user: string) => string;
   isCollapsed: boolean | true;
@@ -126,13 +126,18 @@ export function AgentsSetup({ agents, removeAgent, addAgent, addRAGAgent, editAg
                   Add RAG agent
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[625px] sm:max-h-[80%]">
+              <DialogContent className="max-w-[80vw] max-h-[100vh]">
                 <DialogHeader>
                   <DialogTitle>Add RAG agent</DialogTitle>
                   <DialogDescription>
-                    Note: Always use unique name with no spaces. Always fill System message and Description.
-                    Index Name must be your existing index in AI Search service which is filled with data. We expect a structure of index:
-                    "parent_id", "chunk_id", "chunk","text_vector"
+                    <strong>Name</strong> Always use unique name with no spaces. 
+                    <br />
+                    <strong>Description</strong> is important! - always include what information could be found in the file so the Orchestrator.
+                    <br />
+                    <strong>Index name</strong> is the name of the index where the files will be indexed.
+                    <br />
+                    Indexing can take a while depending on the file size and number of files. After you submit the indexing starts.
+                    
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -145,13 +150,22 @@ export function AgentsSetup({ agents, removeAgent, addAgent, addRAGAgent, editAg
                     <Textarea
                       id="description"
                       className="col-span-3"
-                      defaultValue="An agent that has access to a knowledge base of International Energy Agency (IEA) Analysis and forecast to 2030 and OPEC Monthly Oil Market Report as of January 2025 and can handle RAG tasks, call this agent if you are getting questions on your knowledge base"
-                      placeholder="An agent that has access to internal index and can handle RAG tasks, call this agent if you are getting questions on your internal index."
+                      defaultValue=""
+                      placeholder="An agent that has access to internal index and can handle RAG tasks, call this agent if you are getting questions on your internal index namely about Contoso company Car policy."
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="index_name" className="text-right">Index</Label>
-                    <Input id="index_name" className="col-span-3" defaultValue="vector-autogen-rag" placeholder="your index name" />
+                    <Input id="index_name" className="col-span-3" defaultValue="" placeholder="<your-index-name>" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="file_upload" className="text-right">Knowledge File</Label>
+                    <Input
+                      id="file_upload"
+                      type="file"
+                      multiple
+                      className="col-span-3"
+                    />
                   </div>
                 </div>
                 <DialogFooter className="sm:justify-start">
@@ -162,11 +176,12 @@ export function AgentsSetup({ agents, removeAgent, addAgent, addRAGAgent, editAg
                         const name = (document.getElementById('name') as HTMLInputElement).value;
                         const description = (document.getElementById('description') as HTMLTextAreaElement).value;
                         const indexName = (document.getElementById('index_name') as HTMLInputElement).value;
-                        addRAGAgent(name, description, indexName);
+                        const files = (document.getElementById('file_upload') as HTMLInputElement).files;
+                        addRAGAgent(name, description, indexName, files);
                       }}
                       variant="default"
                     >
-                      Save & Close
+                      Store and Index
                     </Button>
                   </DialogClose>
                 </DialogFooter>

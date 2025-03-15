@@ -179,6 +179,8 @@ output COSMOS_DB_DATABASE string = backend.outputs.cosmosdb_database
 output CONTAINER_NAME string = backend.outputs.container_name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = backend.outputs.ai_search_endpoint
 output AZURE_RESOURCE_GROUP string = rg.name
-// output AZURE_SEARCH_ADMIN_KEY string = backend.outputs.ai_search_admin_key
 
-
+output AZURE_OPENAI_EMBEDDING_MODEL string = backend.outputs.opemaiEmbeddingModel
+output AZURE_STORAGE_ACCOUNT_ENDPOINT string = backend.outputs.storageAccountEndpoint
+output AZURE_STORAGE_ACCOUNT_ID string = backend.outputs.storageAccountId
+output UAMI_RESOURCE_ID string = backend.outputs.userAssignedIdentityId
