@@ -1,0 +1,15 @@
+[project]
+name = "20240407-test-mcp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.6.0",
+    "python-dotenv==1.0.1",
+    "azure-identity==1.19.0",
+    "azure-communication-email==1.0.0",
+    "uvicorn==0.34.0",
+]

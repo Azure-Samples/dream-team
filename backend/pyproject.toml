@@ -7,14 +7,14 @@ requires-python = ">=3.10, <3.13"
 dependencies = [
     "azure-identity==1.19.0",
     "python-dotenv==1.0.1",
-    "autogen-agentchat==0.5.3",
-    "autogen-ext[azure,docker,mcp]==0.5.3",
-    "autogen-core==0.5.3",
+    "autogen-agentchat==0.5.7",
+    "autogen-ext[azure,docker,mcp]==0.5.7",
+    "autogen-core==0.5.7",
     "azure-search-documents==11.6.0b10",
     "markitdown==0.0.2",
     "aiofiles==24.1.0",
     "aiohttp==3.11.11",
-    "playwright==1.50.0",
+    "playwright==1.52.0",
     "openai==1.66.0",
     "azure-storage-blob==12.25.0",
     "fastapi-cors==0.0.6",
@@ -25,5 +25,6 @@ dependencies = [
     "jinja2==3.1.6",
     "azure-cosmos==4.9.0",
     "fastmcp==2.1.2",
-    "mcp==1.6.0"
+    "mcp==1.6.0",
+    "azure-communication-email==1.0.0"
 ]

@@ -38,6 +38,15 @@ param defaultSubnetId string
 @description('The ID of the target virtual network for private DNS association')
 param vnetId string
 
+@description('Name of the Azure Communication Service')
+param communicationServiceName string
+
+@description('Name of the Azure Communication Service Email')
+param communicationServiceEmailName string
+
+@description('Authentication key for the MCP server')
+param mcpKey string
+
 var appSettingsArray = filter(array(appDefinition.settings), i => i.name != '')
 var secrets = map(filter(appSettingsArray, i => i.?secret != null), i => {
   name: i.name
@@ -336,6 +345,83 @@ resource searchZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroup
   ]
 }
 
+
+// New container app: mcpserver
+resource mcpserver 'Microsoft.App/containerApps@2023-05-02-preview' = {
+  name: 'mcpserver'
+  location: location
+  tags: union(tags, {'azd-service-name': 'mcpserver'})
+  dependsOn: [ acrPullRole ]
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${identity.id}': {} }
+  }
+  properties: {
+    managedEnvironmentId: containerAppsEnvironment.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 3100
+        transport: 'auto'
+      }
+      registries: [
+        {
+          server: '${containerRegistryName}.azurecr.io'
+          identity: identity.id
+        }
+      ]
+      // No additional secrets for now
+    }
+    template: {
+      containers: [
+        {
+          image: fetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          name: 'main'
+          env: [
+            {
+              name: 'UAMI_RESOURCE_ID'
+              value: identity.id
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_ENDPOINT'
+              value: 'https://${communicationService.properties.hostName}'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_SENDER'
+              value: 'DoNotReply@${communicationServiceEmailDomain.properties.fromSenderDomain}'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_RECIPIENT_DEFAULT'
+              value: 'michal.marusan@microsoft.com'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_SUBJECT_DEFAULT'
+              value: 'Message from AI Agent'
+            }
+            {
+              name: 'MCP_SERVER_API_KEY'
+              value: mcpKey
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: identity.properties.clientId
+            }
+          ]
+          resources: {
+            cpu: json('2.0')
+            memory: '4.0Gi'
+          }
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
+    }
+  }
+}
+
+
 resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
   name: name
   location: location
@@ -428,6 +514,30 @@ resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
               name: 'UAMI_RESOURCE_ID'
               value: identity.id
             }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_ENDPOINT'
+              value: 'https://${communicationService.properties.hostName}'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_SENDER'
+              value: 'DoNotReply@${communicationServiceEmailDomain.properties.fromSenderDomain}'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_RECIPIENT_DEFAULT'
+              value: 'michal.marusan@microsoft.com'
+            }
+            {
+              name: 'AZURE_COMMUNICATION_EMAIL_SUBJECT_DEFAULT'
+              value: 'Message from AI Agent'
+            }
+            {
+              name: 'MCP_SERVER_URI'
+              value: 'https://${mcpserver.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'MCP_SERVER_API_KEY'
+              value: mcpKey
+            }
           ],
           env,
           map(secrets, secret => {
@@ -466,7 +576,7 @@ resource openaideployment 'Microsoft.CognitiveServices/accounts/deployments@2024
   parent: openai
   sku: {
     name: 'GlobalStandard'
-    capacity: 70
+    capacity: 200
   }
   properties: {
     model: {
@@ -517,6 +627,25 @@ resource openaideploymentembedding 'Microsoft.CognitiveServices/accounts/deploym
   dependsOn: [openaideploymentmini]
 }
 
+// Add deployment for gpt-4.1 model
+resource openaideploymentgpt41 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = {
+  name: 'gpt-4.1'
+  parent: openai
+  sku: {
+    name: 'DataZoneStandard'
+    capacity: 300
+  }
+  properties: {
+    model: {
+      name: 'gpt-4.1'
+      format: 'OpenAI'
+      version: '2025-04-14'
+    }
+    versionUpgradeOption: 'OnceCurrentVersionExpired'
+  }
+  dependsOn: [openaideploymentembedding]
+}
+
 resource dynamicsession 'Microsoft.App/sessionPools@2024-02-02-preview' = {
   name: 'sessionPool'
   location: location
@@ -539,6 +668,59 @@ resource dynamicsession 'Microsoft.App/sessionPools@2024-02-02-preview' = {
     
   }
 }
+
+resource communicationServiceEmail 'Microsoft.Communication/emailServices@2023-04-01' = {
+  location: 'global'
+  name: communicationServiceEmailName 
+  properties: {
+    dataLocation: 'united states'
+  }
+}
+resource communicationServiceEmailDomain 'Microsoft.Communication/emailServices/domains@2023-04-01' = {
+  parent: communicationServiceEmail
+  location: 'global'
+  name: 'AzureManagedDomain'
+  properties: {
+    domainManagement: 'AzureManaged'
+    userEngagementTracking: 'Disabled'
+  }
+}
+
+// Azure Communication Service resource
+resource communicationService 'Microsoft.Communication/CommunicationServices@2023-04-01' = {
+  name: communicationServiceName
+  location: 'global'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    dataLocation: 'united states'
+    linkedDomains: [
+      communicationServiceEmailDomain.id
+      // '/subscriptions/x${}/domains/AzureManagedDomain'
+    ]
+  }
+}
+
+
+resource userCommunicationServiceAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(communicationService.id, userPrincipalId, 'Communication and Email Service Owner')
+  scope: communicationService
+  properties: {
+    principalId: userPrincipalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '09976791-48a7-449e-bb21-39d1a415f350')
+  }
+} 
+
+resource appCommunicationServiceAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(communicationService.id, identity.id, 'Communication and Email Service Owner')
+  scope: communicationService
+  properties: {
+    principalId: identity.properties.principalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '09976791-48a7-449e-bb21-39d1a415f350')
+  }
+} 
+
 
 resource userSessionPoolRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(dynamicsession.id, userPrincipalId, 'Azure Container Apps Session Executor')
@@ -611,6 +793,16 @@ resource assignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@20
   }
 }
 
+resource assignmentUser 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: guid(definition.id, cosmosDb.id, userPrincipalId)
+  parent: cosmosDb
+  properties: {
+    principalId: userPrincipalId
+    roleDefinitionId: definition.id
+    scope: cosmosDb.id
+  }
+}
+
 resource blobContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(storageAcct.id, identity.id, 'Storage Blob Data Contributor')
   scope: storageAcct
@@ -638,3 +830,15 @@ output userAssignedIdentityId string = identity.id
 output opemaiEmbeddingModel string = openaideploymentembedding.name
 output opemaiEmbeddingModelId string = openaideploymentembedding.id
 output ai_search_endpoint string = 'https://${aiSearch.name}.search.windows.net'
+// Azure Communication Service outputs
+output communicationServiceEndpoint string = 'https://${communicationService.properties.hostName}'
+#disable-next-line outputs-should-not-contain-secrets
+output communicationServicePrimaryConnectionString string = communicationService.listKeys().primaryConnectionString
+#disable-next-line outputs-should-not-contain-secrets
+output communicationServicePrimaryKey string = communicationService.listKeys().primaryConnectionString
+output communicationServiceNameOut string = communicationServiceName
+output communicationServiceEmailNameOut string = communicationServiceEmailName
+output communicationServiceEmailDomainOut string = communicationServiceEmailDomain.properties.fromSenderDomain
+
+// Output the FQDN of the new mcpserver container app
+output mcpserver_fqdn string = 'https://${mcpserver.properties.configuration.ingress.fqdn}'

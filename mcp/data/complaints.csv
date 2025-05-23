@@ -1,0 +1,51 @@
+complaint_id,customer_name,timestamp,complaint_text
+C001,Customer 1,2025-01-15 16:01:19,Les agents de bord étaient impolis.
+C002,Customer 2,2025-04-05 16:01:19,Uçuş görevlileri kaba davrandı.
+C003,Customer 3,2025-04-24 16:01:19,The flight attendants were rude.
+C004,Customer 4,2024-09-08 16:01:19,Mon horaire de vol a été modifié plusieurs fois.
+C005,Customer 5,2024-09-30 16:01:19,Uçağım 6 saat gecikti.
+C006,Customer 6,2025-04-28 16:01:19,Das Kabinenpersonal war unhöflich.
+C007,Customer 7,2024-09-19 16:01:19,My baggage was damaged.
+C008,Customer 8,2025-04-28 16:01:19,Mi horario de vuelo fue cambiado varias veces.
+C009,Customer 9,2024-10-10 16:01:19,Mes bagages ont été endommagés.
+C010,Customer 10,2025-01-20 16:01:19,Le repas à bord était terrible.
+C011,Customer 11,2025-01-01 16:01:19,Mon siège a été réservé en double.
+C012,Customer 12,2024-08-30 16:01:19,El nuevo horario de vuelo es inconveniente.
+C013,Customer 13,2024-12-30 16:01:19,Mein Gepäck wurde beschädigt.
+C014,Customer 14,2024-11-21 16:01:19,La comida a bordo fue terrible.
+C015,Customer 15,2024-11-22 16:01:19,My baggage was damaged.
+C016,Customer 16,2025-04-16 16:01:19,Yeni uçuş programı uygunsuz.
+C017,Customer 17,2025-05-15 16:01:19,Mes bagages ont été perdus.
+C018,Customer 18,2024-12-13 16:01:19,Mein Flug hatte 6 Stunden Verspätung.
+C019,Customer 19,2024-07-09 16:01:19,Mes bagages ont été endommagés.
+C020,Customer 20,2024-06-12 16:01:19,Uçağım 6 saat gecikti.
+C021,Customer 21,2025-04-01 16:01:19,Uçuş programım birkaç kez değiştirildi.
+C022,Customer 22,2024-11-03 16:01:19,My flight schedule was changed multiple times.
+C023,Customer 23,2024-09-12 16:01:19,Mein Flug hatte 6 Stunden Verspätung.
+C024,Customer 24,2024-12-09 16:01:19,Das Kabinenpersonal war unhöflich.
+C025,Customer 25,2024-12-14 16:01:19,Uçak içi yemekler berbattı.
+C026,Customer 26,2025-02-27 16:01:19,Mein Gepäck wurde beschädigt.
+C027,Customer 27,2024-06-20 16:01:19,Uçak içi yemekler berbattı.
+C028,Customer 28,2025-04-08 16:01:19,The entertainment system was not working.
+C029,Customer 29,2024-08-21 16:01:19,The in-flight meal was terrible.
+C030,Customer 30,2024-06-05 16:01:19,Mon horaire de vol a été modifié plusieurs fois.
+C031,Customer 31,2024-09-29 16:01:19,The flight attendants were rude.
+C032,Customer 32,2025-04-14 16:01:19,My flight schedule was changed multiple times.
+C033,Customer 33,2025-04-22 16:01:19,My baggage was damaged.
+C034,Customer 34,2024-12-13 16:01:19,Les agents de bord étaient impolis.
+C035,Customer 35,2024-12-30 16:01:19,Uçuş fazla rezerve edilmişti.
+C036,Customer 36,2024-11-07 16:01:19,Bagajım kayboldu.
+C037,Customer 37,2024-06-16 16:01:19,Das Unterhaltungssystem funktionierte nicht.
+C038,Customer 38,2025-03-22 16:01:19,La comida a bordo fue terrible.
+C039,Customer 39,2025-03-04 16:01:19,Los asistentes de vuelo fueron groseros.
+C040,Customer 40,2024-12-23 16:01:19,Los asistentes de vuelo fueron groseros.
+C041,Customer 41,2024-11-15 16:01:19,Der Flug war überbucht.
+C042,Customer 42,2024-09-01 16:01:19,Der neue Flugplan ist unpraktisch.
+C043,Customer 43,2024-09-27 16:01:19,Le vol était surréservé.
+C044,Customer 44,2024-09-18 16:01:19,Der neue Flugplan ist unpraktisch.
+C045,Customer 45,2025-04-12 16:01:19,My flight was delayed by 6 hours.
+C046,Customer 46,2025-03-05 16:01:19,Das Bordessen war schrecklich.
+C047,Customer 47,2024-12-29 16:01:19,Mein Flug hatte 6 Stunden Verspätung.
+C048,Customer 48,2024-06-08 16:01:19,Mes bagages ont été endommagés.
+C049,Customer 49,2025-03-12 16:01:19,Yeni uçuş programı uygunsuz.
+C050,Customer 50,2024-07-20 16:01:19,Mein Gepäck wurde beschädigt.

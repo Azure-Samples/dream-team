@@ -61,7 +61,7 @@ def generate_session_name():
     return f"{adjective}-{noun}-{number}"
 
 class MagenticOneHelper:
-    def __init__(self, logs_dir: str = None, save_screenshots: bool = False, run_locally: bool = False) -> None:
+    def __init__(self, logs_dir: str = None, save_screenshots: bool = False, run_locally: bool = False, user_id: str = None) -> None:
         """
         A helper class to interact with the MagenticOne system.
         Initialize MagenticOne instance.
@@ -69,12 +69,15 @@ class MagenticOneHelper:
         Args:
             logs_dir: Directory to store logs and downloads
             save_screenshots: Whether to save screenshots of web pages
+            user_id: The user ID associated with this helper instance
         """
         self.logs_dir = logs_dir or os.getcwd()
         self.runtime: Optional[SingleThreadedAgentRuntime] = None
         # self.log_handler: Optional[LogHandler] = None
         self.save_screenshots = save_screenshots
         self.run_locally = run_locally
+
+        self.user_id = user_id
 
         self.max_rounds = 50
         self.max_time = 25 * 60
@@ -97,10 +100,11 @@ class MagenticOneHelper:
             self.session_id = generate_session_name()
         else:
             self.session_id = session_id
-
+        # print(f"Session MODEL gpt-4.1-2025-04-14")
+        print(f"Session MODEL o4-mini-2025-04-16")
         self.client = AzureOpenAIChatCompletionClient(
-            model="gpt-4o-2024-11-20",
-            azure_deployment="gpt-4o",
+            model="gpt-4.1-2025-04-14",
+            azure_deployment="gpt-4.1",
             api_version="2025-03-01-preview",
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_ad_token_provider=token_provider,
@@ -113,8 +117,8 @@ class MagenticOneHelper:
         )
 
         self.client_reasoning = AzureOpenAIChatCompletionClient(
-            model="o3-mini",
-            azure_deployment="o3-mini",
+            model="o4-mini-2025-04-16",
+            azure_deployment="o4-mini",
             api_version="2025-03-01-preview",
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_ad_token_provider=token_provider,
@@ -122,7 +126,7 @@ class MagenticOneHelper:
                 "vision": True,
                 "function_calling": True,
                 "json_output": True,
-                "family": "o3"
+                "family": "o4"
             }
         )
 
@@ -170,7 +174,7 @@ class MagenticOneHelper:
 
             # This is default MagenticOne agent - WebSurfer
             elif (agent["type"] == "MagenticOne" and agent["name"] == "WebSurfer"):
-                web_surfer = MultimodalWebSurfer("WebSurfer", model_client=client, start_page="https://azure.microsoft.com/en-us/blog/?sort-by=newest-oldest&category=ai-machine-learning&content-type=announcements&date=any&s=")
+                web_surfer = MultimodalWebSurfer("WebSurfer", model_client=client)
                 agent_list.append(web_surfer)
                 print("WebSurfer added!")
             
@@ -197,8 +201,10 @@ class MagenticOneHelper:
                 custom_agent = await MagenticOneCustomMCPAgent.create(
                     agent["name"], 
                     client, 
-                    agent["system_message"], 
-                    agent["description"])
+                    agent["system_message"] + "\n\n in case of email use this address as TO: " + self.user_id, 
+                    agent["description"],
+                    self.user_id
+                )
                 agent_list.append(custom_agent)
                 print(f'{agent["name"]} (custom MCP) added!')
 

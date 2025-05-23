@@ -1,7 +1,10 @@
-# pip install fastmcp
+
+from typing import Any
+import httpx
 from mcp.server.fastmcp import FastMCP
-import os
-import json
+
+# Initialize FastMCP server
+mcp = FastMCP("ag-general")
 import logging
 from azure.communication.email import EmailClient
 from azure.identity import DefaultAzureCredential
@@ -9,8 +12,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize the server
-mcp = FastMCP("Math")
+import json
+import os
 
 
 # MCP tool for sending email using Azure Communication Services
@@ -83,26 +86,6 @@ def mailer(
         return f"Email sent2. \n\nTERMINATE."
 
 @mcp.tool()
-def add(a: int, b: int) -> int:
-    return a + b
-
-@mcp.tool()
-def multiply(a: int, b: int) -> int:
-    return a * b
-
-# @mcp.tool()
-# def data_provider() -> str:
-#     """A tool that provides some data."""
-#     # This is a placeholder for the actual data provider logic
-#     data = "This is some data."
-#     # read from a file
-#     with open("data/pred_maint/sensor.csv", "r") as file:
-#         data = file.read()
-    
-#     return data
-
-
-@mcp.tool()
 def data_provider(tablename: str) -> str:
     """A tool that provides data from database based on given table name as parameter.
     
@@ -157,7 +140,25 @@ def find_file(filename: str) -> str:
         "filename": filename
     })
 
+@mcp.tool()
+def show_tables() -> list:
+    """
+    Searches for all CSV files in the ./data folder and returns a list of table names (without .csv extension).
+    Returns:
+        list: List of table names found in the ./data directory.
+    """
+    logger = logging.getLogger("show_tables")
+    table_names = []
+    for root, _, files in os.walk("./data"):
+        for file in files:
+            if file.lower().endswith(".csv"):
+                table_name = file[:-4]  # Remove .csv extension
+                table_names.append(table_name)
+                logger.info(f"Found table: {table_name}")
+    if not table_names:
+        logger.warning("No CSV tables found in './data' directory.")
+    return table_names
+
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
-    # data = file_provider("maintenance.csv")
-    # print(data)
+    # Initialize and run the server
+    mcp.run(transport='stdio')

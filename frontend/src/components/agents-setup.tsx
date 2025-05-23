@@ -29,7 +29,6 @@ const iconOptions = [
   { value: 'BookMarked', label: 'Bookmark', icon: BookMarked },
   { value: 'Bot', label: 'Bot', icon: Bot },
   { value: 'Search', label: 'Search', icon: Search },
-  { value: 'ChartNoAxesCombined', label: 'ChartNoAxesCombined', icon: ChartNoAxesCombined },
   { value: 'DatabaseZap', label: 'DatabaseZap', icon: DatabaseZap },
 ];
 
@@ -165,6 +164,7 @@ export function AgentsSetup({ team, isCollapsed, showDetails }: AgentsSetupProps
 
         {!isCollapsed && (
           <div className="rounded-xl bg-muted/50 shadow p-4">
+            {/* Add agent dialog */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">
@@ -222,7 +222,7 @@ export function AgentsSetup({ team, isCollapsed, showDetails }: AgentsSetupProps
                         const name = (document.getElementById('name') as HTMLInputElement).value;
                         const description = (document.getElementById('description') as HTMLTextAreaElement).value;
                         const systemMessage = (document.getElementById('system_message') as HTMLTextAreaElement).value;
-                        addAgent(team.team_id, name, description, systemMessage, newAgentIcon);
+                        addAgent(team.team_id, name, description, systemMessage, newAgentIcon, 'Custom');
                         setHasTeamChanged(true);
                         setNewAgentIcon(iconOptions[0]?.value || '');
                       }}
@@ -235,6 +235,89 @@ export function AgentsSetup({ team, isCollapsed, showDetails }: AgentsSetupProps
               </DialogContent>
             </Dialog>
             <Separator className="my-4" />
+            {/* Add MCP agent dialog */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                  Add MCP agent
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[80vw] max-h-[100vh]">
+                <DialogHeader>
+                  <DialogTitle>Add MCP agent</DialogTitle>
+                  <DialogDescription>
+                    Note: Always use unique name with no spaces. Always fill System message and Description. MCP agents are used for Model Context Protocol tasks.
+                  </DialogDescription>
+
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Currently supported tasks are:
+                    <ul className="list-disc pl-4">
+                      <li><code>data provider</code> - have access to /data folder and servers CSV files as data</li>
+                      <li><code>mailer</code> - Sends an email using Azure Communication Services EmailClient.</li>
+
+                    </ul>
+                    </div>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="mcp_name" className="text-right">Name</Label>
+                    <Input id="mcp_name" defaultValue="MyMCPAgent1" className="col-span-3" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="mcp_description" className="text-right">Description</Label>
+                    <Textarea id="mcp_description" className="col-span-3" placeholder="Describe the MCP agent capabilities and its intended use." />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="mcp_system_message" className="text-right">System Message</Label>
+                    <Textarea
+                      id="mcp_system_message"
+                      className="col-span-3 font-mono"
+                      rows={10}
+                      placeholder='In the system message use as last sentence: Reply "TERMINATE" in the end when everything is done.'
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Icon</Label>
+                    <div className="col-span-3 flex flex-wrap gap-2 mt-1">
+                      {iconOptions.map(opt => (
+                        <Button
+                          key={opt.value}
+                          type="button"
+                          variant={newAgentIcon === opt.value ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => setNewAgentIcon(opt.value)}
+                        >
+                          {React.createElement(opt.icon, { className: 'h-5 w-5' })}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter className="sm:justify-start">
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const name = (document.getElementById('mcp_name') as HTMLInputElement).value;
+                        const description = (document.getElementById('mcp_description') as HTMLTextAreaElement).value;
+                        const systemMessage = (document.getElementById('mcp_system_message') as HTMLTextAreaElement).value;
+                        // Use the correct signature for addAgent (type is always 5 args)
+                        // To distinguish MCP agent, set type to 'CustomMCP' in the agent object after creation
+                        addAgent(team.team_id, name, description, systemMessage, newAgentIcon, 'CustomMCP');
+                        setHasTeamChanged(true);
+                        setNewAgentIcon(iconOptions[0]?.value || '');
+                      }}
+                      variant="default"
+                    >
+                      Save & Close
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Separator className="my-4" />
+            {/* Add RAG agent dialog */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">

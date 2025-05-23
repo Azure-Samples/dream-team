@@ -41,7 +41,7 @@ export interface Team {
 interface TeamsContextType {
   teams: Team[];
   loading: boolean;
-  addAgent: (team_id: string, name: string, description: string, systemMessage: string, icon: string) => void;
+  addAgent: (team_id: string, name: string, description: string, systemMessage: string, icon: string, type?: string) => void;
   addRAGAgent: (
     team_id: string,
     name: string,
@@ -60,25 +60,25 @@ const TeamsContext = createContext<TeamsContextType>({} as TeamsContextType);
 
 export const getTeamLogo = (team: Team): React.ElementType => {
   if (team && team.logo && Object.keys(team.logo).length > 0) {
-  	switch (team.logo) {
-	    case 'Map':
-	      return Map;
-	    case 'AudioWaveform':
-	      return AudioWaveform;
-	    case 'ChartNoAxesCombined':
-	      return ChartNoAxesCombined;
-	    case 'DollarSign':
-	      return DollarSign;
-	    case 'ShieldAlert':
-	      return ShieldAlert;
-	    case 'ShoppingBasket':
-	      return ShoppingBasket;
-	    default:
-	      return Wrench; // Default logo
-  	}
+    switch (team.logo) {
+      case 'Map':
+        return Map;
+      case 'AudioWaveform':
+        return AudioWaveform;
+      case 'ChartNoAxesCombined':
+        return ChartNoAxesCombined;
+      case 'DollarSign':
+        return DollarSign;
+      case 'ShieldAlert':
+        return ShieldAlert;
+      case 'ShoppingBasket':
+        return ShoppingBasket;
+      default:
+        return Wrench; // Default logo
+    }
   }
   else{
-  	return Wrench;
+    return Wrench;
   }
 }
 
@@ -166,7 +166,7 @@ export const TeamsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const addAgent = (team_id: string, name: string, description: string, systemMessage: string, icon: string) => {
+  const addAgent = (team_id: string, name: string, description: string, systemMessage: string, icon: string, type: string = 'Custom') => {
     setTeams((prev) =>
       prev.map((t) => {
         if (t.team_id !== team_id) return t;
@@ -174,7 +174,7 @@ export const TeamsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const newInputKey = crypto.randomUUID();
         const newAgent: Agent = {
           input_key: newInputKey,
-          type: 'Custom',
+          type,
           name,
           system_message: systemMessage,
           description,

@@ -48,11 +48,11 @@
   "devDependencies": {
     "@azure/static-web-apps-cli": "^2.0.4",
     "@eslint/js": "^9.17.0",
-    "@types/node": "^22.15.3",
-    "@types/react": "^18.3.20",
+    "@types/node": "^22.15.21",
+    "@types/react": "^18.3.22",
     "@types/react-dom": "^18.3.7",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^4.5.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -62,7 +62,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
-    "vite": "^6.3.4"
+    "vite": "^6.3.5"
   },
   "vite": {
     "server": {

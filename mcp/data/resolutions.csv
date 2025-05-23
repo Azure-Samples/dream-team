@@ -1,0 +1,51 @@
+complaint_id,category,resolution_notes,status
+R001,Baggage Mishandlings,Compensation voucher issued.,Resolved
+R002,Schedule Changes,Issue resolved with customer service.,Resolved
+R003,Schedule Changes,Upgrade to first class provided.,Resolved
+R004,Schedule Changes,Meal voucher issued.,Resolved
+R005,Baggage Mishandlings,Refund processed.,Resolved
+R006,Other,Apology letter sent to customer.,Resolved
+R007,Schedule Changes,Refund processed.,Resolved
+R008,Schedule Changes,Bag located and will be delivered in 24 hours.,Resolved
+R009,Schedule Changes,New schedule confirmed.,Resolved
+R010,Baggage Mishandlings,Issue resolved with customer service.,Resolved
+R011,Schedule Changes,Bag located and will be delivered in 24 hours.,Resolved
+R012,Baggage Mishandlings,Apology letter sent to customer.,Resolved
+R013,Flight Disruptions,Meal voucher issued.,Resolved
+R014,Flight Disruptions,Flight rebooked at no extra cost.,Resolved
+R015,Flight Disruptions,Upgrade to first class provided.,Resolved
+R016,Baggage Mishandlings,Meal voucher issued.,Resolved
+R017,Schedule Changes,Bag located and will be delivered in 24 hours.,Resolved
+R018,Flight Disruptions,Refund processed.,Resolved
+R019,Flight Disruptions,Compensation for inconvenience provided.,Resolved
+R020,Baggage Mishandlings,Bag located and will be delivered in 24 hours.,Resolved
+R021,Baggage Mishandlings,Refund processed.,Resolved
+R022,Flight Disruptions,Meal voucher issued.,Resolved
+R023,Other,Compensation voucher issued.,Resolved
+R024,Other,Meal voucher issued.,Resolved
+R025,Flight Disruptions,Issue resolved with customer service.,Resolved
+R026,Flight Disruptions,Upgrade to first class provided.,Resolved
+R027,Other,Flight rebooked at no extra cost.,Resolved
+R028,Schedule Changes,Bag located and will be delivered in 24 hours.,Resolved
+R029,Other,Issue resolved with customer service.,Resolved
+R030,Flight Disruptions,New schedule confirmed.,Resolved
+R031,Baggage Mishandlings,New schedule confirmed.,Resolved
+R032,Baggage Mishandlings,New schedule confirmed.,Resolved
+R033,Baggage Mishandlings,Flight rebooked at no extra cost.,Resolved
+R034,Flight Disruptions,Bag located and will be delivered in 24 hours.,Resolved
+R035,Baggage Mishandlings,Bag located and will be delivered in 24 hours.,Resolved
+R036,Flight Disruptions,Bag located and will be delivered in 24 hours.,Resolved
+R037,Schedule Changes,Flight rebooked at no extra cost.,Resolved
+R038,Other,Refund processed.,Resolved
+R039,Other,Compensation voucher issued.,Resolved
+R040,Other,Bag located and will be delivered in 24 hours.,Resolved
+R041,Flight Disruptions,Apology letter sent to customer.,Resolved
+R042,Baggage Mishandlings,Flight rebooked at no extra cost.,Resolved
+R043,Flight Disruptions,Issue resolved with customer service.,Resolved
+R044,Flight Disruptions,Issue resolved with customer service.,Resolved
+R045,Flight Disruptions,Meal voucher issued.,Resolved
+R046,Other,Bag located and will be delivered in 24 hours.,Resolved
+R047,Baggage Mishandlings,New schedule confirmed.,Resolved
+R048,Other,Refund processed.,Resolved
+R049,Flight Disruptions,Issue resolved with customer service.,Resolved
+R050,Schedule Changes,Flight rebooked at no extra cost.,Resolved

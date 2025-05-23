@@ -23,6 +23,20 @@ services:
             posix:
                 shell: sh
                 run: 'azd env get-values > .env'
+    mcpserver:
+        project: mcp
+        host: containerapp
+        language: python
+        docker:
+            path: Dockerfile
+        hooks:
+          postdeploy: 
+            windows:
+                shell: pwsh
+                run: 'azd env get-values > .env'
+            posix:
+                shell: sh
+                run: 'azd env get-values > .env'
     frontend:
         project: frontend
         host: staticwebapp

@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
     # Startup code: initialize database and configure logging
     # app.state.db = None
     app.state.db = CosmosDB()
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.WARNING,
                         format='%(levelname)s: %(asctime)s - %(message)s')
     print("Database initialized.")
     yield
@@ -359,7 +359,7 @@ async def chat_stream(
    
     logger = logging.getLogger("chat_stream")
     logger.setLevel(logging.WARNING)
-    logger.warning(f"Chat stream started for session_id: {session_id} and user_id: {user_id}")
+    logger.info(f"Chat stream started for session_id: {session_id} and user_id: {user_id}")
     # create folder for logs if not exists
     logs_dir="./logs"
     if not os.path.exists(logs_dir):    
@@ -367,7 +367,7 @@ async def chat_stream(
 
     # get the conversation from the database using user and session id
     conversation = crud.get_conversation(user_id, session_id)
-    logger.warning(f"Conversation retrieved: {conversation}")
+    logger.info(f"Conversation retrieved: {conversation}")
     # get first message from the conversation
     first_message = conversation["messages"][0]
     # get the task from the first message as content
@@ -378,14 +378,14 @@ async def chat_stream(
     _agents = conversation["agents"]
 
 
-    #  Initialize the MagenticOne system
-    magentic_one = MagenticOneHelper(logs_dir=logs_dir, save_screenshots=False, run_locally=_run_locally)
-    logger.warning(f"Initializing MagenticOne with agents: {len(_agents)} and session_id: {session_id}")
+    #  Initialize the MagenticOne system with user_id
+    magentic_one = MagenticOneHelper(logs_dir=logs_dir, save_screenshots=False, run_locally=_run_locally, user_id=user_id)
+    logger.info(f"Initializing MagenticOne with agents: {len(_agents)} and session_id: {session_id} and user_id: {user_id}")
     await magentic_one.initialize(agents=_agents, session_id=session_id)
-    logger.warning(f"Initialized MagenticOne with agents: {len(_agents)} and session_id: {session_id}")
+    logger.info(f"Initialized MagenticOne with agents: {len(_agents)} and session_id: {session_id} and user_id: {user_id}")
 
     stream, cancellation_token = magentic_one.main(task = task)
-    logger.warning(f"Stream and cancellation token created for task: {task}")
+    logger.info(f"Stream and cancellation token created for task: {task}")
 
 
     async def event_generator(stream, conversation):

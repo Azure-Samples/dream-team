@@ -155,6 +155,9 @@ module backend './app/backend.bicep' = {
     azureOpenaiResourceName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     storageName: '${abbrs.storageStorageAccounts}${resourceToken}'
     vnetId: network.outputs.vnetId
+    communicationServiceName: '${abbrs.communicationServiceAccounts}${resourceToken}'
+    communicationServiceEmailName: '${abbrs.communicationServiceAccounts}-email-${resourceToken}'
+    mcpKey: guid(resourceToken, 'mcpserver_api_key')
   }
   scope: rg
   dependsOn: [
@@ -195,3 +198,11 @@ output AZURE_OPENAI_EMBEDDING_MODEL string = backend.outputs.opemaiEmbeddingMode
 output AZURE_STORAGE_ACCOUNT_ENDPOINT string = backend.outputs.storageAccountEndpoint
 output AZURE_STORAGE_ACCOUNT_ID string = backend.outputs.storageAccountId
 output UAMI_RESOURCE_ID string = backend.outputs.userAssignedIdentityId
+
+output AZURE_COMMUNICATION_EMAIL_ENDPOINT string = backend.outputs.communicationServiceEndpoint
+output AZURE_COMMUNICATION_EMAIL_SENDER string = 'DoNotReply@${backend.outputs.communicationServiceEmailDomainOut}'
+output AZURE_COMMUNICATION_EMAIL_RECIPIENT_DEFAULT string = '<recipient@example.com>'
+output AZURE_COMMUNICATION_EMAIL_SUBJECT_DEFAULT string = 'Message from AI Agent'
+
+output MCP_SERVER_URI string = backend.outputs.mcpserver_fqdn
+output MCP_SERVER_API_KEY string = guid(backend.outputs.mcpserver_fqdn, 'mcpserver_api_key')
