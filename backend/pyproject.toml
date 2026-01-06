@@ -13,7 +13,7 @@ dependencies = [
     "azure-search-documents==11.6.0b10",
     "markitdown==0.0.2",
     "aiofiles==24.1.0",
-    "aiohttp==3.12.14",
+    "aiohttp==3.13.3",
     "playwright==1.52.0",
     "openai==1.66.0",
     "azure-storage-blob==12.25.0",
