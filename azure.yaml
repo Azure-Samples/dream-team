@@ -2,7 +2,7 @@
 
 name: dreamteam
 metadata:
-    template: azd-init@1.10.3
+    template: dreamteam@1.10.3
 workflows:
   up: 
     steps:
