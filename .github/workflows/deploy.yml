@@ -27,11 +27,11 @@ jobs:
       ## Define the additional variables or secrets that are required globally (provision and deploy)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # using the install-azd action
       - name: Install azd
-        uses: Azure/setup-azd@v2.1.0
+        uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e # v2.1.0
 
       # azd set up Federated Credential by default. You can remove this step if you are using Client Credentials
       - name: Log in with Azure (Federated Credentials)
